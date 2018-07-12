@@ -1,19 +1,9 @@
 # ASL-Scripts for Livesplit
-## Turok 2: Seeds of Evil (WIP)
+## Turok 2: Seeds of Evil 
 - If you need premade splits visit [SPEEDRUN.COM](http://www.speedrun.com/turok2/resources) (By DvD_01)
 - Atm no item split triggers (your splits have to rely on warps) 
 - Special thanks to [DvD_01](http://www.speedrun.com/user/DvD_01) for testing and answering questions
-- You can always suggest changes and I will see what I can do
-### TODO
- - Notice if someone is warping back accidentally 
-   - Did not work due to problems with load timings & warping back and forth while progressing
-   - Level name based split system did not help to fix the problems
-   - Maybe find another memory address thats useful
- - Add item split triggers for 100% 
- - Only split if collecting a talisman, not while entering or leaving the shrines (same for nuke part?)
- - Don't split while entering or leaving the save portals
- - Split directly after defeating the Primagen
-   - For now it splits at the start of the Adon end scene 
+
 ### INSTRUCTIONS
 #### INSTALLATION
 
