@@ -10,7 +10,7 @@
 __⟹ You can activate the Auto Splitter directly in Live Split:__ 
 ![TL](https://github.com/DJorzik/ASL-Scripts/blob/master/Resources/T2SOE_INSTALL_LS.PNG?raw=true)
 
-_If you downloaded premade splits and activated the Auto Splitter via Live Split_ <br/>
+_If you've downloaded premade splits and activated the Auto Splitter via Live Split_ <br/>
 _make sure that the Game Name is exactly set to "Turok 2: Seeds of Evil"_ :boom:
 
 __⟹ Otherwise download the .asl file [from my Repository](https://github.com/DJorzik/ASL-Scripts/releases) and add it manually:__ 
