@@ -19,7 +19,7 @@ state("Turok2")
 		
 		0x1CA5FC (old):
 			- bool: 
-					hits zero an "arbitrarily" amount of times while loading  
+					hits zero a "random" amount of times while loading  
 					including not hitting it at all 
 					(reproducable)
 
