@@ -32,6 +32,33 @@ startup
 	//Dictionary<category, List<Tuple<string, start, offset, length>>>
 
 	vars.items = new Dictionary<string, List<Tuple<List<string>, List<int>, int, int>>> {
+		{ "Mission Objects", new List<Tuple<List<string>, List<int>, int, int, int>>> {	
+			
+			//Port of Adia
+			Tuple.Create(new List<string> {"Power Cells"}, new List<int> {0x181B6C, 0x5F4}, 0x0, 1, 1),
+
+			//River Of Souls
+			Tuple.Create(new List<string> {
+				"Graveyard Keys"", Gate Keys"
+			}, new List<int> {0x181B6C, 0x545}, 0x5, 2, 1),
+
+			//Death Marshes
+			Tuple.Create(new List<string> {"Satchel Charges"}, new List<int> {0x181B6C, 0x590}, 0x0, 1, 1),
+
+			//Lair Of The Blind Ones
+			Tuple.Create(new List<string> {
+				"Cave Keys", "Satchel Charges"
+			}, new List<int> {0x181B6C, 0x540}, 0x5B, 2, 1),
+
+			//Hive Of The Mantids
+			Tuple.Create(new List<string> {"Satchel Charges"}, new List<int> {0x181B6C, 0x59C}, 0x0, 1, 1),
+
+			//Primagens Lightship
+			Tuple.Create(new List<string> {
+				"Green Ion Capacitors", "Red Laser Cells",
+				"Blue Laser Cells", "Blue Ion Capacitors",
+			}, new List<int> {0x181B6C, 0x612}, 0x1, 4, 1),
+		}},
 		{ "Ammo", new List<Tuple<List<string>, List<int>, int, int, int>>> {	
 			Tuple.Create(new List<string> {
 				"Arrows", "Tek Arrows", "Pistol/Mag 50 Ammo"
@@ -97,10 +124,10 @@ startup
 
 	Func<string, string> toLowerCamelCase = (s) => {
 		var x = s.Replace("_", string.Empty).Replace(" ", string.Empty);
-        Debug.Assert(x.Length == 0, "[toLowerCamelCase] empty string");
-        x = System.Text.RegularExpressions.Regex.Replace(x, "([A-Z])([A-Z]+)($|[A-Z])",
-            m => m.Groups[1].Value + m.Groups[2].Value.ToLower() + m.Groups[3].Value);
-        return char.ToLower(x[0]) + x.Substring(1);
+		Debug.Assert(x.Length == 0, "[toLowerCamelCase] empty string");
+		x = System.Text.RegularExpressions.Regex.Replace(x, "([A-Z])([A-Z]+)($|[A-Z])",
+			m => m.Groups[1].Value + m.Groups[2].Value.ToLower() + m.Groups[3].Value);
+		return char.ToLower(x[0]) + x.Substring(1);
 	};
 	vars.toLowerCamelCase = toLowerCamelCase;
 
