@@ -202,14 +202,14 @@ startup
 			Tuple.Create(new List<string> {"Mother HP"}, new List<int> {0x136C50}, 0x0, 1, 2),
 
 			Tuple.Create(new List<string> {
-				"M Big Tentacle Right",		//[0,150]	;P2
-				"M Tentacle 1R",			//[0,40]	;P1
-				"M Tentacle 2R",			//[0,40]	;P1
-				"M Tentacle 3R",			//[0,40]	;P1
-				"M Big Tentacle Left",		//[0,150]	;P2
-				"M Tentacle 1L",			//[0,40]	;P1
-				"M Tentacle 2L",			//[0,40]	;P1
-				"M Tentacle 3L"				//[0,40]	;P1
+				"M Big Tentacle Right",	//[0,150]	;P2
+				"M Tentacle 1R",	//[0,40]	;P1
+				"M Tentacle 2R",	//[0,40]	;P1
+				"M Tentacle 3R",	//[0,40]	;P1
+				"M Big Tentacle Left",	//[0,150]	;P2
+				"M Tentacle 1L",	//[0,40]	;P1
+				"M Tentacle 2L",	//[0,40]	;P1
+				"M Tentacle 3L"		//[0,40]	;P1
 			}, new List<int> {0x135EE1}, 0x68, 8, 1),
 
 			Tuple.Create(new List<string> {"M Head"}, new List<int> {0x1363C1}, 0x0, 1, 2), //[0,500]; P3
@@ -221,13 +221,13 @@ startup
 			Tuple.Create(new List<string> {"Primagen HP"}, new List<int> {0x1364FD}, 0x0, 1, 1),
 
 			Tuple.Create(new List<string> {
-				"P Big Arm",		//[0,80]	;P2
-				"P Head",			//[0,200]	;P3 - can underflow
-				"P Small Arm",		//[0,50]	;P2
-				"P Tentacle 1",		//[0,20]	;P1
-				"P Tentacle 2",		//[0,20]	;P1
-				"P Tentacle 3",		//[0,20]	;P1
-				"P Tentacle 4",		//[0,20]	;P1
+				"P Big Arm",	//[0,80]	;P2
+				"P Head",	//[0,200]	;P3 - can underflow
+				"P Small Arm",	//[0,50]	;P2
+				"P Tentacle 1",	//[0,20]	;P1
+				"P Tentacle 2",	//[0,20]	;P1
+				"P Tentacle 3",	//[0,20]	;P1
+				"P Tentacle 4",	//[0,20]	;P1
 			}, new List<int> {0x136879}, 0x4, 7, 1)
 		}}
 	};
