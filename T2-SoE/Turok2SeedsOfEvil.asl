@@ -27,6 +27,13 @@ state("Turok2")
 
 startup
 {
+	/* TODO r> Data
+	vars.mainMenu = 0;
+	vars.intro1 = 50;
+	vars.hub = 60;
+	vars.primagenBoss = 4;	
+	*/
+
 	//=============================================================================
 	// Level Infos (old, needs some rework)
 	//=============================================================================
@@ -178,7 +185,7 @@ startup
 
 	//Dictionary<category, List<Tuple<string, start, offset, length>>>
 	//calc: F: +11;	D: -1; 
-	//maybe add max, min, mod
+	//maybe add max, min, mod and delete obsolete length
 
 	vars.gameAddresses = new Dictionary<string, List<Tuple<List<string>, List<int>, int, int, int>>> {
 		{ "General", new List<Tuple<List<string>, List<int>, int, int, int>> {		
@@ -281,12 +288,12 @@ startup
 		}},
 		{ "Nuke Parts", new List<Tuple<List<string>, List<int>, int, int, int>> {	//read only
 			Tuple.Create(new List<string>{
-
+				"First Nuke Part", "Second Nuke Part", "Third Nuke Part",
+				"Fourth Nuke Part", "Fifth Nuke Part", "Sixth Nuke Part"
 			}, new List<int> {0x181B6C, 0x71F}, 0x1, 6, 1)
 		}},
 		/* TODO
 		{ "Missions", new List<Tuple<List<string>, List<int>, int, int, int>> {		
-
 
 		}},
 		*/
@@ -336,14 +343,14 @@ startup
 			Tuple.Create(new List<string> {"Q Bugs"}, new List<int> {0x136CB0}, 0x0, 1, 1),
 
 			Tuple.Create(new List<string> {
-				"Q Butt",		//[0,255]	;SP2
-				"Q Arms",		//[0,150]	;SP3
-				"Q Head",		//[0,30]	;SP4
+				"Q Butt",	//[0,255]	;SP2
+				"Q Arms",	//[0,150]	;SP3
+				"Q Head",	//[0,30]	;SP4
 				"Q Small Arms"	//[0,25]	;SP1
 			}, new List<int> {0x136AB1}, 0x68, 4, 1),
 
 			//Mother
-			//bossHPBar:: none
+			//bossHPBar: none
 			//P1[0,240]; P2[0,300]; P3[0,500] 
 			Tuple.Create(new List<string> {"Mother HP"}, new List<int> {0x136C50}, 0x0, 1, 2),
 
@@ -407,10 +414,6 @@ startup
 	// Settings
 	//=============================================================================
 	
-	vars.mainMenu = 0;
-	vars.intro1 = 50;
-	vars.hub = 60;
-	vars.primagenBoss = 4;	
 }
 
 init
@@ -421,6 +424,20 @@ init
 	// Memory Watcher
 	//=============================================================================
 
+	vars.watchers = new MemoryWatcherList();
+
+	foreach(KeyValuePair<string, List<Tuple<List<string>, List<int>, int, int, int>>> entry in vars.gameAddresses)
+	{
+		for(int i = 0; i < entry.Value.Count; ++i)
+		{	
+			int address = 0x0;
+			for(int j = 0; j < entry.Value[i].Item1.Count; ++j) 
+			{
+
+				vars.watcher.Add(new MemoryWatcher<int>(new DeepPointer())
+			}		
+		}
+	}
 	
 }
 
