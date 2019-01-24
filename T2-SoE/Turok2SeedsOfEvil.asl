@@ -183,7 +183,7 @@ startup
 	// Memory Addresses
 	//=============================================================================
 
-	//Dictionary<category, List<Tuple<string, start, offset, length>>>
+	//Dictionary<category, List<Tuple<name, start, offset, length>>>
 	//calc: F: +11;	D: -1; 
 	//maybe add max, min, mod and delete obsolete length
 
@@ -333,10 +333,17 @@ startup
 			}, new List<int> {0x135E0C}, 0x4, 2, 1),
 
 			//Mantid Queen
-			//bossHPBar:: P[0,100]: SP1(94,100]; SP2(39,94]; SP3(6,39]; SP4[0,6]  
+			//bossHPBar: P[0,100]: SP1(94,100]; SP2(39,94]; SP3(6,39]; SP4[0,6]  
 
 			//PC[1,8]: SP1[1,2]; SP2[3,4]; SP3[5,6]; SP4[7,8] 
-			//odd: bug fights, except SP4: 7 = on the ground; 8 = dead
+			//1 - bugs
+			//2 - smallArms
+			//3 - bugs
+			//4 - butt
+			//5 - bugs
+			//6 - arms
+			//7 - on the ground
+			//8 - dead
 			Tuple.Create(new List<string> {"Q Phase"}, new List<int> {0x136C50}, 0x0, 1, 1),
 
 			//BGKC[R, R + #KB] 1:[R,R+2]; 3:[R+2,R+2+4]; 5:[R+2+4,R+2+4+4]
@@ -421,20 +428,35 @@ init
 	timer.IsGameTimePaused = false;
 
 	//=============================================================================
-	// Memory Watcher
+	// Memory Watcher (maybe multiple watcher lists, add multiple types after testing => stringwatcher for levelName)
 	//=============================================================================
 
 	vars.watchers = new MemoryWatcherList();
 
 	foreach(KeyValuePair<string, List<Tuple<List<string>, List<int>, int, int, int>>> entry in vars.gameAddresses)
 	{
+		vars.DebugOutput("================ " + entry.Key.ToUpper() + " ================");
 		for(int i = 0; i < entry.Value.Count; ++i)
 		{	
-			int address = 0x0;
-			for(int j = 0; j < entry.Value[i].Item1.Count; ++j) 
-			{
+			var cTuple = entry.Value[i];
+			var cPointerPath = cTuple.Item2;
+			var cOffset = cTuple.Item3;
 
-				vars.watcher.Add(new MemoryWatcher<int>(new DeepPointer())
+			vars.DebugOutput("------------ TUPLE " + (i+1).ToString() + " ------------");
+
+			for(int j = 0; j < cTuple.Item1.Count; ++j) 
+			{
+				var cName = vars.toLowerCamelCase(cTuple.Item1[j]);
+				vars.watchers.Add(
+					new MemoryWatcher<byte>(
+						new DeepPointer(cPointerPath[0], cPointerPath.GetRange(1, cPointerPath.Count - 1).ToArray())
+					) { Name = cName }
+				);
+				vars.watchers.UpdateAll(game);
+				vars.DebugOutput("Added MemoryWatcher " + cName + " with Base: " + cPointerPath[0].ToString("X") + ","
+																+ " Last Offset: " + cPointerPath[cPointerPath.Count - 1].ToString("X") + " and"
+																+ " Current Value: " + vars.watchers[cName].Current);
+				cPointerPath[cPointerPath.Count - 1] += cOffset;
 			}		
 		}
 	}
@@ -448,7 +470,7 @@ exit
 
 update
 {
-	//TODO Watcher
+	vars.watchers.UpdateAll(game);
 }
 
 start
