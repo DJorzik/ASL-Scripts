@@ -84,12 +84,12 @@ startup
 			}, new List<int> {0x181B6C, 0x93C}, 0x2, 4, 1),
 
 			Tuple.Create(new List<string> {
-				"Plasma/Cannon Ammo", "Sunfire Pods", "Cerebral Bore Ammo", "P.F.M. Ammo", "Grenades",
+				"Plasma/Cannon Ammo", "Sunfire Pod Amount", "Cerebral Bore Ammo", "P.F.M. Ammo", "Grenades",
 				"Scorpion Missiles", "Harpoons", "Torpedos"
 			}, new List<int> {0x181B6C, 0x946}, 0x2, 8, 1),
 
 			Tuple.Create(new List<string> {
-				"Flame Thrower Fuel", "Razor Wind", "Nuke Ammo", "Crossbow Ammo (MP)",
+				"Flame Thrower Fuel", "Razor Wind Ammo", "Nuke Ammo", "Crossbow Ammo (MP)",
 				"Charge Dart Rifle Ammo (MP)", "Assault Rifle Ammo (MP)", "Plasma Rifle Ammo (MP)",
 				"Firestorm Cannon Ammo (MP)",  "Cerebral Bore Ammo (MP)", "Grenades (MP)",
 				"Scorpion Missiles (MP)", "Harpoons (MP)", "Torpedos (MP)"
@@ -106,28 +106,37 @@ startup
 			Tuple.Create(new List<string> {
 				"Flame Thrower", "Razor Wind", "Nuke", "Flare",
 				"Crossbow (MP)", "Charge Dart Rifle (MP)", "Assault Rifle (MP)", "Plasma Rifle (MP)",
-				"Firestorm Cannon (MP)",  "Cerebral Bore (MP)", "Grenade Launcher (MP)", "Scorpion Launcher (MP)",
-				"Harpoon Gun (MP)", "Torpedo Launcher (MP)"
+				"Firestorm Cannon (MP)",  "Cerebral Bore (MP)", "Grenade Launcher (MP)",
+				"Scorpion Launcher (MP)", "Harpoon Gun (MP)", "Torpedo Launcher (MP)"
 			}, new List<int> {0x181B6C, 0x986}, 0x1, 14, 1)
 		}},
 		{ "Level Keys", new List<Tuple<List<string>, List<int>, int, int, int>> {	//Level 6 Keys read only
-			Tuple.Create(new List<string>(), new List<int> {0x181B6C, 0x662}, 0xA, 6, 1)
+			Tuple.Create(new List<string> {
+				"Level 2 Keys", "Level 3 Keys", "Level 4 Keys", "Level 5 Keys", "Level 6 Keys"
+			}, new List<int> {0x181B6C, 0x662}, 0xA, 5, 1)
 		}},
 		{ "Primagen Keys", new List<Tuple<List<string>, List<int>, int, int, int>> {
-			Tuple.Create(new List<string>(), new List<int> {0x181B6C, 0x694}, 0x1, 6, 1)
+			Tuple.Create(new List<string>{
+				"First Primagen Key", "Second Primagen Key", "Third Primagen Key",
+				"Fourth Primagen Key", "Fifth Primagen Key", "Sixth Primagen Key"
+			}, new List<int> {0x181B6C, 0x694}, 0x1, 6, 1)
 		}},
 		{ "Eagle Feathers", new List<Tuple<List<string>, List<int>, int, int, int>> { //Not in Order
 			Tuple.Create(new List<string> {
-				"Blue", "Grey", "Brown", "Purple", "Red" 
+				"Blue Eagle Feather", "Grey Eagle Feather",
+				"Brown Eagle Feather", "Purple Eagle Feather", "Red Eagle Feather" 
 			}, new List<int> {0x181B6C, 0x6BC}, 0x1, 5, 1)
 		}},
 		{ "Talismans", new List<Tuple<List<string>, List<int>, int, int, int>> { //Not in Order
 			Tuple.Create(new List<string> {
-				"Breath of Life", "Eye of Truth", "Leap of Faith", "Whispers", "Heart of Fire"
+				"Breath of Life Talisman", "Eye of Truth Talisman",
+				"Leap of Faith Talisman", "Whispers Talisman", "Heart of Fire Talisman"
 			}, new List<int> {0x181B6C, 0x6A8}, 0x1, 5, 1)
 		}},
 		{ "Nuke Parts", new List<Tuple<List<string>, List<int>, int, int, int>> {	//read only
-			Tuple.Create(new List<string>(), new List<int> {0x181B6C, 0x71F}, 0x1, 6, 1)
+			Tuple.Create(new List<string>{
+
+			}, new List<int> {0x181B6C, 0x71F}, 0x1, 6, 1)
 		}},
 		/* TODO
 		{ "Missions", new List<Tuple<List<string>, List<int>, int, int, int>> {		
@@ -212,30 +221,41 @@ startup
 			Tuple.Create(new List<string> {"Primagen HP"}, new List<int> {0x1364FD}, 0x0, 1, 1),
 
 			Tuple.Create(new List<string> {
-				"pBigArm",		//[0,80]	;P2
-				"pHead",		//[0,200]	;P3 - can underflow
-				"pSmallArm",	//[0,50]	;P2
-				"pTentacle1",	//[0,20]	;P1
-				"pTentacle2",	//[0,20]	;P1
-				"pTentacle3",	//[0,20]	;P1
-				"pTentacle4",	//[0,20]	;P1
+				"P Big Arm",	//[0,80]	;P2
+				"P Head",		//[0,200]	;P3 - can underflow
+				"P Small Arm",	//[0,50]	;P2
+				"P Tentacle 1",	//[0,20]	;P1
+				"P Tentacle 2",	//[0,20]	;P1
+				"P Tentacle 3",	//[0,20]	;P1
+				"P Tentacle 4",	//[0,20]	;P1
 			}, new List<int> {0x136879}, 0x4, 7, 1)
 		}}
 	};
 
-
 	//=============================================================================
-	// Functions
+	// Utility Functions
 	//=============================================================================
 
 	Func<string, string> toLowerCamelCase = (s) => {
-		var x = s.Replace("_", string.Empty).Replace(" ", string.Empty);
+		var x = s.Replace(" ", string.Empty)
+				 .Replace("/", string.Empty)
+				 .Replace("\\", string.Empty)
+				 .Replace("(", string.Empty)
+				 .Replace(")", string.Empty)
+				 .Replace("]", string.Empty)
+				 .Replace("[", string.Empty)
+				 .Replace(".", string.Empty);
 		Debug.Assert(x.Length == 0, "[toLowerCamelCase] empty string");
 		x = System.Text.RegularExpressions.Regex.Replace(x, "([A-Z])([A-Z]+)($|[A-Z])",
 			m => m.Groups[1].Value + m.Groups[2].Value.ToLower() + m.Groups[3].Value);
 		return char.ToLower(x[0]) + x.Substring(1);
 	};
 	vars.toLowerCamelCase = toLowerCamelCase;
+
+	Action<string> DebugOutput = (s) => {
+		print("[T2:SOE:Classic Autosplitter] " + s);
+	};
+	vars.DebugOutput = DebugOutput;
 
 	//=============================================================================
 	// Settings
@@ -255,6 +275,22 @@ init
 	// Memory Watcher
 	//=============================================================================
 
+	//=============================================================================
+	// Pre-Formatting (do it later on the fly)
+	//=============================================================================
+
+	foreach(KeyValuePair<string, List<Tuple<List<string>, List<int>, int, int, int>>> entry in vars.gameAddresses)
+	{
+		for(int i = 0; i < entry.Value.Count; ++i)
+		{		
+			for(int j = 0; j < entry.Value[i].Item1.Count; ++j) 
+			{
+				vars.DebugOutput("Reformatted \"" + entry.Value[i].Item1[j] + "\" => ...");
+				entry.Value[i].Item1[j] = vars.toLowerCamelCase(entry.Value[i].Item1[j]);
+				vars.DebugOutput("... => \"" + entry.Value[i].Item1[j] + "\"");
+			}		
+		}
+	}
 }
 
 exit
