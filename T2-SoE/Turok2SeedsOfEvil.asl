@@ -34,26 +34,26 @@ startup
 	//Dictionary<category, List<Tuple<string, start, offset, length>>>
 	//calc: F: +11;	D: -1; 
 
-	vars.gameAddresses = new Dictionary<string, List<Tuple<List<string>, List<int>, int, int>>> {
-		{ "General", new List<Tuple<List<string>, List<int>, int, int, int>>> {		
+	vars.gameAddresses = new Dictionary<string, List<Tuple<List<string>, List<int>, int, int, int>>> {
+		{ "General", new List<Tuple<List<string>, List<int>, int, int, int>> {		
 			Tuple.Create(new List<string> {"Level ID"}, new List<int> {0x1CA5F0}, 0x0, 1, 1),
 			Tuple.Create(new List<string> {"Is Loading"}, new List<int> {0x1CA5F8}, 0x0, 1, 1),
 			Tuple.Create(new List<string> {"Level Name"}, new List<int> {0x1741C8}, 0x0, 1, 1),
 			Tuple.Create(new List<string> {"In Menu"}, new List<int> {0x1D4D1C}, 0x0, 1, 1)
 		}},
-		{ "Player Stats", new List<Tuple<List<string>, List<int>, int, int, int>>> {		
+		{ "Player Stats", new List<Tuple<List<string>, List<int>, int, int, int>> {		
 			Tuple.Create(new List<string> {"Health Points"}, new List<int> {0x181B6C, 0x525}, 0x0, 1, 1),
 			Tuple.Create(new List<string> {"Life Forces"}, new List<int> {0x181B6C, 0x528}, 0x0, 1, 1),
 			Tuple.Create(new List<string> {"Extra Lifes"}, new List<int> {0x181B6C, 0x52A}, 0x0, 1, 1),
 			Tuple.Create(new List<string> {"Current Ammo"}, new List<int> {0x181B6C, 0x10B8}, 0x0, 1, 1)
 		}},
-		{ "Mission Objects", new List<Tuple<List<string>, List<int>, int, int, int>>> {		
+		{ "Mission Objects", new List<Tuple<List<string>, List<int>, int, int, int>> {		
 			//Port of Adia
 			Tuple.Create(new List<string> {"Power Cells"}, new List<int> {0x181B6C, 0x5F4}, 0x0, 1, 1),
 
 			//River Of Souls
 			Tuple.Create(new List<string> {
-				"Graveyard Keys"", Gate Keys"
+				"Graveyard Keys", "Gate Keys"
 			}, new List<int> {0x181B6C, 0x545}, 0x5, 2, 1),
 
 			//Death Marshes
@@ -73,7 +73,7 @@ startup
 				"Blue Laser Cells", "Blue Ion Capacitors",
 			}, new List<int> {0x181B6C, 0x612}, 0x1, 4, 1)
 		}},
-		{ "Ammo", new List<Tuple<List<string>, List<int>, int, int, int>>> {	
+		{ "Ammo", new List<Tuple<List<string>, List<int>, int, int, int>> {	
 			Tuple.Create(new List<string> {
 				"Arrows", "Tek Arrows", "Pistol/Mag 50 Ammo"
 			}, new List<int> {0x181B6C, 0x934}, 0x2, 3, 1),
@@ -95,7 +95,7 @@ startup
 				"Scorpion Missiles (MP)", "Harpoons (MP)", "Torpedos (MP)"
 			}, new List<int> {0x181B6C, 0x95C}, 0x2, 13, 1)
 		}},
-		{ "Weapons", new List<Tuple<List<string>, List<int>, int, int, int>>> {	
+		{ "Weapons", new List<Tuple<List<string>, List<int>, int, int, int>> {	
 			Tuple.Create(new List<string> {
 				"Talon", "War Blade", "Bow",  "Tek Bow", "Pistol",
 				"Mag 60", "Tranquilizer", "Charge Dart Rifle",  "Shotgun", "Shredder",
@@ -110,32 +110,32 @@ startup
 				"Harpoon Gun (MP)", "Torpedo Launcher (MP)"
 			}, new List<int> {0x181B6C, 0x986}, 0x1, 14, 1)
 		}},
-		{ "Level Keys", new List<Tuple<List<string>, List<int>, int, int, int>>> {	//Level 6 Keys read only
-			Tuple.Create(null, new List<int> {0x181B6C, 0x662}, 0xA, 6, 1)
+		{ "Level Keys", new List<Tuple<List<string>, List<int>, int, int, int>> {	//Level 6 Keys read only
+			Tuple.Create(new List<string>(), new List<int> {0x181B6C, 0x662}, 0xA, 6, 1)
 		}},
-		{ "Primagen Keys", new List<Tuple<List<string>, List<int>, int, int, int>>> {
-			Tuple.Create(null, new List<int> {0x181B6C, 0x694}, 0x1, 6, 1)
+		{ "Primagen Keys", new List<Tuple<List<string>, List<int>, int, int, int>> {
+			Tuple.Create(new List<string>(), new List<int> {0x181B6C, 0x694}, 0x1, 6, 1)
 		}},
-		{ "Eagle Feathers", new List<Tuple<List<string>, List<int>, int, int, int>>> { //Not in Order
+		{ "Eagle Feathers", new List<Tuple<List<string>, List<int>, int, int, int>> { //Not in Order
 			Tuple.Create(new List<string> {
 				"Blue", "Grey", "Brown", "Purple", "Red" 
 			}, new List<int> {0x181B6C, 0x6BC}, 0x1, 5, 1)
 		}},
-		{ "Talismans", new List<Tuple<List<string>, List<int>, int, int, int>>> { //Not in Order
+		{ "Talismans", new List<Tuple<List<string>, List<int>, int, int, int>> { //Not in Order
 			Tuple.Create(new List<string> {
 				"Breath of Life", "Eye of Truth", "Leap of Faith", "Whispers", "Heart of Fire"
 			}, new List<int> {0x181B6C, 0x6A8}, 0x1, 5, 1)
 		}},
-		{ "Nuke Parts", new List<Tuple<List<string>, List<int>, int, int, int>>> {	//read only
-			Tuple.Create(null, new List<int> {0x181B6C, 0x71F}, 0x1, 6, 1)
+		{ "Nuke Parts", new List<Tuple<List<string>, List<int>, int, int, int>> {	//read only
+			Tuple.Create(new List<string>(), new List<int> {0x181B6C, 0x71F}, 0x1, 6, 1)
 		}},
 		/* TODO
-		{ "Missions", new List<Tuple<List<string>, List<int>, int, int, int>>> {		
+		{ "Missions", new List<Tuple<List<string>, List<int>, int, int, int>> {		
 
 
 		}},
 		*/
-		{ "Bosses", new List<Tuple<List<string>, List<int>, int, int, int>>> {	
+		{ "Bosses", new List<Tuple<List<string>, List<int>, int, int, int>> {	
 			Tuple.Create(new List<string> {"Boss HP Bar"}, new List<int> {0x1CA71C}, 0x0, 1, 1),
 
 			///The Blind One
@@ -196,7 +196,7 @@ startup
 				"M Big Tentacle Right",	//[0,150]	;P2
 				"M Tentacle 1R",		//[0,40]	;P1
 				"M Tentacle 2R",		//[0,40]	;P1
-				"M Tentacle 3R"			//[0,40]	;P1
+				"M Tentacle 3R",		//[0,40]	;P1
 				"M Big Tentacle Left",	//[0,150]	;P2
 				"M Tentacle 1L",		//[0,40]	;P1
 				"M Tentacle 2L",		//[0,40]	;P1
@@ -215,13 +215,13 @@ startup
 				"pBigArm",		//[0,80]	;P2
 				"pHead",		//[0,200]	;P3 - can underflow
 				"pSmallArm",	//[0,50]	;P2
-				"pTentacle1"	//[0,20]	;P1
+				"pTentacle1",	//[0,20]	;P1
 				"pTentacle2",	//[0,20]	;P1
 				"pTentacle3",	//[0,20]	;P1
 				"pTentacle4",	//[0,20]	;P1
-			}, new List<int> {0x136879}, 0x4, 4, 1)
+			}, new List<int> {0x136879}, 0x4, 7, 1)
 		}}
-	}
+	};
 
 
 	//=============================================================================
