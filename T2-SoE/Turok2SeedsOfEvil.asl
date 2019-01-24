@@ -28,11 +28,157 @@ state("Turok2")
 startup
 {
 	//=============================================================================
+	// Level Infos (old, needs some rework)
+	//=============================================================================
+
+	vars.levelInfos = new Tuple<string, int, Dictionary<string,int>, Dictionary<string,int>,
+	string[],
+	string[],
+	string
+	>[]{
+        Tuple.Create(
+			"Port Of Adia",
+			6,
+			new Dictionary<string,int>{
+				{"Distress Beacons", 3},
+				{"Children", 4}
+			},
+			new Dictionary<string,int>{
+				{"Power Cells", 3}
+			},
+			new string[] {string.Empty, string.Empty},
+			new string[]{
+				"Pistol",
+				"Tek Bow",
+				"Shotgun"
+			},
+			string.Empty
+		),
+
+        Tuple.Create(
+			"River Of Souls",
+			3,
+			new Dictionary<string,int>{
+				{"Soul Gates", 2},
+				{"Sisters of Despair", 3}
+			},
+			new Dictionary<string,int>{
+				{"Gate Keys", 2},
+				{"Graveyard Keys", 2}
+			},
+			new string[]{
+				"Brown Eagle Feather",
+				"Leap of Faith Talisman"
+			},
+			new string[]{
+				"War Blade",
+				"Mag .60",
+				"Tranquilizer Gun"
+			},
+			string.Empty
+		),
+
+        Tuple.Create(
+			"Death Marshes",
+			3,
+			new Dictionary<string,int>{
+				{"Prisoners", 5},
+				{"Ammunition Facilities", 3}
+			},
+			new Dictionary<string,int>{
+				{"Satchel Charges", 3}
+			},
+			new string[]{
+				"Blue Eagle Feather",
+				"Breath of Life Talisman"
+			},	
+			new string[]{
+				"Shredder",
+				"Plasma Rifle",
+				"Grenade Launcher"
+			},
+			string.Empty
+		),
+
+        Tuple.Create(
+			"Lair Of The Blind Ones",
+			3,
+			new Dictionary<string,int>{
+				{"Thermal Vents", 3}
+			},
+			new Dictionary<string,int>{
+				{"Satchel Charges", 3},
+				{"Cave Keys", 8}
+			},
+			new string[]{
+				"Red Eagle Feather",
+				"Heart of Fire Talisman"
+			},
+			new string[]{
+				"Harpoon Gun",
+				"Torpedo Launcher",
+				"Flame Thrower",
+				"Sun Fire Pod",
+				"Charge Dart Rifle",
+				"Cerebral Bore"
+			},
+			"The Blind One"
+		),
+
+        Tuple.Create(
+			"Hive Of The Mantids",
+			3,
+			new Dictionary<string,int>{
+				{"Master Computer", 1},
+				{"Queen Embryos", 3}
+			},
+			new Dictionary<string,int>{
+				{"Satchel Charges", 4}
+			},
+			new string[]{
+				"Purple Eagle Feather",
+				"Whispers Talisman"
+			},
+			new string[]{
+				"P.F.M. Layer",
+				"Firestorm Cannon",
+				"Scorpion Missle Launcher"
+			},
+			"Mantid Queen"
+		),
+
+        Tuple.Create(
+			"Primagens Lightship",
+			0,
+			new Dictionary<string,int>{
+				{"Purification", 1}, //TODO
+				{"Assembly Factories", 3}
+			},
+			new Dictionary<string,int>{
+				{"Blue Ion Capacitors", 16},	//Max 4
+				{"Green Ion Capacitors", 16},
+				{"Blue Laser Cells", 4},	//Max 2
+				{"Red Laser Cells", 4}
+			},
+			new string[]{
+				"Grey Eagle Feather",
+				"Eye of Truth Talisman"
+			},
+			new string[]{
+				"Razor Wind",
+				"Nuke"
+			},
+			"Mother"
+		)
+    };
+
+	//=============================================================================
 	// Memory Addresses
 	//=============================================================================
 
 	//Dictionary<category, List<Tuple<string, start, offset, length>>>
 	//calc: F: +11;	D: -1; 
+	//maybe add max, min, mod
 
 	vars.gameAddresses = new Dictionary<string, List<Tuple<List<string>, List<int>, int, int, int>>> {
 		{ "General", new List<Tuple<List<string>, List<int>, int, int, int>> {		
@@ -70,7 +216,7 @@ startup
 			//Primagens Lightship
 			Tuple.Create(new List<string> {
 				"Green Ion Capacitors", "Red Laser Cells",
-				"Blue Laser Cells", "Blue Ion Capacitors",
+				"Blue Laser Cells", "Blue Ion Capacitors"
 			}, new List<int> {0x181B6C, 0x612}, 0x1, 4, 1)
 		}},
 		{ "Ammo", new List<Tuple<List<string>, List<int>, int, int, int>> {	
@@ -275,22 +421,7 @@ init
 	// Memory Watcher
 	//=============================================================================
 
-	//=============================================================================
-	// Pre-Formatting (do it later on the fly)
-	//=============================================================================
-
-	foreach(KeyValuePair<string, List<Tuple<List<string>, List<int>, int, int, int>>> entry in vars.gameAddresses)
-	{
-		for(int i = 0; i < entry.Value.Count; ++i)
-		{		
-			for(int j = 0; j < entry.Value[i].Item1.Count; ++j) 
-			{
-				vars.DebugOutput("Reformatted \"" + entry.Value[i].Item1[j] + "\" => ...");
-				entry.Value[i].Item1[j] = vars.toLowerCamelCase(entry.Value[i].Item1[j]);
-				vars.DebugOutput("... => \"" + entry.Value[i].Item1[j] + "\"");
-			}		
-		}
-	}
+	
 }
 
 exit
