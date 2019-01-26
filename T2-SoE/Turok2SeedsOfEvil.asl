@@ -49,10 +49,10 @@ startup
 			string.Empty,
 			string.Empty,
 			string.Empty,
-			"The Blind One",
-			"Mantid Queen",
-			"Mother",
-			"Primagen"
+			"The Blind One Boss",
+			"Mantid Queen Boss",
+			"Mother Boss",
+			"Primagen Endboss"
 	};
 	
 	vars.gameAddresses = new Dictionary<string, List<Tuple<List<Tuple<string, int, int, int>>, List<int>, int, int>>> {
@@ -172,9 +172,9 @@ startup
 		{ "Weapons", new List<Tuple<List<Tuple<string, int, int, int>>, List<int>, int, int>> {	
 
 			Tuple.Create(new List<Tuple<string, int, int, int>> {
-				Tuple.Create("Have Talon", 0, 0, 1),
+				Tuple.Create("Have Talon", -1, 0, 1),
 				Tuple.Create("Have War Blade", 1, 0, 1),
-				Tuple.Create("Have Bow", 0, 0, 1),
+				Tuple.Create("Have Bow", -1, 0, 1),
 				Tuple.Create("Have Tek Bow", 0, 0, 1),
 				Tuple.Create("Have Pistol", 0, 0, 1),
 				Tuple.Create("Have Mag 60", 1, 0, 1),
@@ -182,8 +182,8 @@ startup
 				Tuple.Create("Have Charge Dart Rifle", 3, 0, 1),
 				Tuple.Create("Have Shotgun", 0, 0, 1),
 				Tuple.Create("Have Shredder", 2, 0, 1),
-				Tuple.Create("Plasma Rifle", 2, 0, 1),
-				Tuple.Create("Firestorm Cannon", 4, 0, 1),
+				Tuple.Create("Have Plasma Rifle", 2, 0, 1),
+				Tuple.Create("Have Firestorm Cannon", 4, 0, 1),
 				Tuple.Create("Have Sunfire Pod", 3, 0, 1),
 				Tuple.Create("Have Cerebral Bore", 3, 0, 1),
 				Tuple.Create("Have P.F.M. Layer", 4, 0, 1),
@@ -197,7 +197,7 @@ startup
 				Tuple.Create("Have Flame Thrower", 3, 0, 1),
 				Tuple.Create("Have Razor Wind", 5, 0, 1),
 				Tuple.Create("Have Nuke", 5, 0, 1),
-				Tuple.Create("Have Flare", 0, 0, 1),
+				Tuple.Create("Have Flare", -1, 0, 1),
 				Tuple.Create("Have Crossbow (MP)", -1, 0, 1),
 				Tuple.Create("Have Charge Dart Rifle (MP)", -1, 0, 1),
 				Tuple.Create("Have Assault Rifle (MP)", -1, 0, 1),
@@ -376,24 +376,29 @@ startup
 
 			//P1[0,80]; P2[0,130]; P3[0,200]
 			Tuple.Create(new List<Tuple<string, int, int, int>> {
-				Tuple.Create("Primagen HP", 6, 0, 200)
+				Tuple.Create("Primagen HP", -1, 0, 200)
 			}, new List<int> {0x1364FD}, 0x0, 1),
 
 			Tuple.Create(new List<Tuple<string, int, int, int>> {
-				Tuple.Create("Primagen Big Arm HP", 6, 0, 80), //P2
-				Tuple.Create("Primagen Head HP", 6, 0, 200), //P3 - can underflow
-				Tuple.Create("Primagen Small Arm HP", 6, 0, 50), //P2
-				Tuple.Create("Primagen Tentacle 1 HP", 6, 0, 20), //P1
-				Tuple.Create("Primagen Tentacle 2 HP", 6, 0, 20), //P1
-				Tuple.Create("Primagen Tentacle 3 HP", 6, 0, 20), //P1
-				Tuple.Create("Primagen Tentacle 4 HP", 6, 0, 20)  //P1
+				Tuple.Create("Primagen Big Arm HP", -1, 0, 80), //P2
+				Tuple.Create("Primagen Head HP", -1, 0, 200), //P3 - can underflow
+				Tuple.Create("Primagen Small Arm HP", -1, 0, 50), //P2
+				Tuple.Create("Primagen Tentacle 1 HP", -1, 0, 20), //P1
+				Tuple.Create("Primagen Tentacle 2 HP", -1, 0, 20), //P1
+				Tuple.Create("Primagen Tentacle 3 HP", -1, 0, 20), //P1
+				Tuple.Create("Primagen Tentacle 4 HP", -4, 0, 20)  //P1
 			}, new List<int> {0x136879}, 0x4, 1)
 		}}
 	};
 
 	//=============================================================================
-	// Utility Functions
+	// Debug and Utility Functions
 	//=============================================================================
+
+	Action<string> DebugOutput = (s) => {
+		print("[T2:SOE:Classic Autosplitter] " + s);
+	};
+	vars.DebugOutput = DebugOutput;
 
 	Func<string, string> toLowerCamelCase = (s) => {
 		var x = s.Replace(" ", string.Empty)
@@ -404,21 +409,15 @@ startup
 				 .Replace("]", string.Empty)
 				 .Replace("[", string.Empty)
 				 .Replace(".", string.Empty);
-		Debug.Assert(x.Length == 0, "[toLowerCamelCase] empty string");
 		x = System.Text.RegularExpressions.Regex.Replace(x, "([A-Z])([A-Z]+)($|[A-Z])",
 			m => m.Groups[1].Value + m.Groups[2].Value.ToLower() + m.Groups[3].Value);
 		return char.ToLower(x[0]) + x.Substring(1);
 	};
 	vars.toLowerCamelCase = toLowerCamelCase;
 
-	Action<string> DebugOutput = (s) => {
-		print("[T2:SOE:Classic Autosplitter] " + s);
-	};
-	vars.DebugOutput = DebugOutput;
-
-	Action<string> DebugOutputCategory = (s) => {
-		var cTupleList = vars.gameAddresses[s];
-		DebugOutput("======== " + s.ToUpper() + " ========");
+	Action<string> DebugOutputCategory = (category) => {
+		var cTupleList = vars.gameAddresses[category];
+		DebugOutput("======== " + category.ToUpper() + " ========");
 		for(int i = 0; i < cTupleList.Count; ++i)
 		{
 			var cTuple = cTupleList[i];
@@ -435,7 +434,64 @@ startup
 	// Settings
 	//=============================================================================
 
+	for(int i = 0; i < vars.mainLevelNames.Count; ++i)
+	{
+		var cMainLevelName = vars.toLowerCamelCase(vars.mainLevelNames[i]);
+		var cBossName = vars.bossNames[i];
+		settings.Add(cMainLevelName, false, vars.mainLevelNames[i]);
+		if(cBossName.Length != 0) settings.Add(vars.toLowerCamelCase(cBossName), false, cBossName, cMainLevelName);
+	}
+
+	var endbossName = vars.bossNames[vars.bossNames.Count - 1];
+	settings.Add(vars.toLowerCamelCase(endbossName), false, endbossName);
 	
+	var keysToAdd = new List<string> {"Level Keys", "Primagen Keys", "Eagle Feathers", "Talismans", "Weapons"};
+
+	foreach(KeyValuePair<string, List<Tuple<List<Tuple<string, int, int, int>>, List<int>, int, int>>> entry in vars.gameAddresses)
+	{	
+		if(keysToAdd.Contains(entry.Key))
+		{
+			var cLevelEntryCount = new List<int>(new int[vars.mainLevelNames.Count]);
+
+			for(int i = 0; i < entry.Value.Count; ++i)
+			{	
+				var cDataTupleList = entry.Value[i].Item1;
+				for(int j = 0; j < cDataTupleList.Count; ++j) 
+				{
+					var cLevelIndex = cDataTupleList[j].Item2;
+					if(cLevelIndex > -1) ++cLevelEntryCount[cLevelIndex];
+				}
+			}
+
+			for(int i = 0; i < vars.mainLevelNames.Count; ++i)
+			{
+				if(cLevelEntryCount[i] > 1)
+					settings.Add(vars.toLowerCamelCase(vars.mainLevelNames[i] + entry.Key),
+									false, entry.Key, vars.toLowerCamelCase(vars.mainLevelNames[i]));
+			}
+
+			for(int i = 0; i < entry.Value.Count; ++i)
+			{	
+				var cDataTupleList = entry.Value[i].Item1;
+				for(int j = 0; j < cDataTupleList.Count; ++j) 
+				{
+					var cDataTuple = cDataTupleList[j];
+					var cName = cDataTuple.Item1;
+					var cLevelIndex = cDataTuple.Item2;
+
+					if(cLevelIndex >= 0)
+					{
+						if(cLevelEntryCount[cLevelIndex] > 1)
+							settings.Add(vars.toLowerCamelCase(cName), false, cName, 
+									 vars.toLowerCamelCase(vars.mainLevelNames[cLevelIndex] + entry.Key));
+						else
+							settings.Add(vars.toLowerCamelCase(cName), false, cName, 
+									 vars.toLowerCamelCase(vars.mainLevelNames[cLevelIndex]));
+					}
+				}
+			}
+		}
+	}
 	
 }
 
@@ -446,7 +502,6 @@ init
 	//=============================================================================
 	// Memory Watcher
 	//=============================================================================
-
 	//Types
 	//-----
 	//0: bool
