@@ -467,7 +467,7 @@ startup
 			{
 				if(cLevelEntryCount[i] > 1)
 					settings.Add(vars.toLowerCamelCase(vars.mainLevelNames[i] + entry.Key),
-									false, entry.Key, vars.toLowerCamelCase(vars.mainLevelNames[i]));
+						false, entry.Key, vars.toLowerCamelCase(vars.mainLevelNames[i]));
 			}
 
 			for(int i = 0; i < entry.Value.Count; ++i)
@@ -483,10 +483,10 @@ startup
 					{
 						if(cLevelEntryCount[cLevelIndex] > 1)
 							settings.Add(vars.toLowerCamelCase(cName), false, cName, 
-									 vars.toLowerCamelCase(vars.mainLevelNames[cLevelIndex] + entry.Key));
+								vars.toLowerCamelCase(vars.mainLevelNames[cLevelIndex] + entry.Key));
 						else
 							settings.Add(vars.toLowerCamelCase(cName), false, cName, 
-									 vars.toLowerCamelCase(vars.mainLevelNames[cLevelIndex]));
+								vars.toLowerCamelCase(vars.mainLevelNames[cLevelIndex]));
 					}
 				}
 			}
