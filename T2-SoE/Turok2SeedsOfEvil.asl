@@ -30,29 +30,29 @@ startup
 	//main calc: F: +11; D: -1; 
 
 	vars.levelIDs = new Dictionary<string, int> {
-			{"Main Menu", 0},
-			{"Intro1", 50},
-			{"Hub", 60},
-			{"Primagen Boss", 4}
+		{"Main Menu", 0},
+		{"Intro1", 50},
+		{"Hub", 60},
+		{"Primagen Boss", 4}
 	};
 
 	vars.mainLevelNames = new List<string> {
-			"Port of Adia",
-			"River Of Souls",
-			"Death Marshes",
-			"Lair Of The Blind Ones",
-			"Hive Of The Mantids",
-			"Primagens Lightship"
+		"Port of Adia",
+		"River Of Souls",
+		"Death Marshes",
+		"Lair Of The Blind Ones",
+		"Hive Of The Mantids",
+		"Primagens Lightship"
 	};
 	
 	vars.bossNames = new List<string> {
-			string.Empty,
-			string.Empty,
-			string.Empty,
-			"The Blind One Boss",
-			"Mantid Queen Boss",
-			"Mother Boss",
-			"Primagen Endboss"
+		string.Empty,
+		string.Empty,
+		string.Empty,
+		"The Blind One Boss",
+		"Mantid Queen Boss",
+		"Mother Boss",
+		"Primagen Endboss"
 	};
 	
 	vars.gameAddresses = new Dictionary<string, List<Tuple<List<Tuple<string, int, int, int>>, List<int>, int, int>>> {
