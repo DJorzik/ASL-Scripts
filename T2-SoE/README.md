@@ -1,4 +1,4 @@
-﻿## Turok 2: Seeds of Evil 
+﻿## Turok 2: Seeds of Evil (OBSOLETE/WIP)
 - If you need premade splits visit [SPEEDRUN.COM](http://www.speedrun.com/turok2/resources) (By DvD_01)
 - Atm no item split triggers (your splits have to rely on warps) 
 - Special thanks to [DvD_01](http://www.speedrun.com/user/DvD_01) for testing and answering questions

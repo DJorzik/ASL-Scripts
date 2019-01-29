@@ -3,17 +3,6 @@
 // Special thanks to DvD_01 for testing and answering questions
  
 //TODO CHANGE DESCRIPTION / NEW LINK / REFER TO SPEEDRUN.COM
-//TODO CURRENTLY SPLITS IF YOU LOAD FROM SOMEWHERE ELSE INTO THE HUB -> CHANGE INMENU (ID TIMING RELATED)
-//TODO POSSIBLY PROBLEMATIC IF SOMEONE WARPS INTO THE WRONG LEVEL AND RELOADS 
-//TODO MAYBE OFFER OPTIONS FOR SPLITTING BEFORE OR AFTER A LOAD
-//TODO MAYBE REFINE SPLITS AFTER BOSS FIGHTS FOR LEVEL BASED SPLITTING (BOSS/TOTEM BASED SPLITTING?)
-
-// General Plan
-// - add addresses
-// - utility functions
-// - memory watcher
-// - settings
-// - split code
 
 state("Turok2")
 {
@@ -28,10 +17,9 @@ startup
 	// Data and Memory Addresses
 	//=============================================================================
 	//main calc: F: +11; D: -1; 
-	//TODO change primagen -v
-	//TODO add in order
-	//TODO delete tlcc for acronyms
 	//TODO maybe better ds
+	//TODO add missions
+	//TODO bind keys to level
 
 	vars.levelIDs = new Dictionary<string, int> {
 		{"Main Menu", 0},
@@ -223,7 +211,7 @@ startup
 				Tuple.Create("Level 3 Keys", 0, 0, 3),
 				Tuple.Create("Level 4 Keys", 1, 0, 3),
 				Tuple.Create("Level 5 Keys", 2, 0, 3),
-				Tuple.Create("Level 6 Keys", 3, 0, 3)
+				Tuple.Create("Level 6 Keys", -1, 0, 6) //3 & 4
 			}, new List<int> {0x181B6C, 0x662}, 0xA, 1)
 
 		}},
@@ -438,8 +426,16 @@ startup
 	// Settings
 	//=============================================================================
 
+	settings.Add("deleteLater", true, "======== order for some parts doesn't matter for now ========");
+	settings.Add("warps", true, "Warp Transitions");
+	settings.Add("warpsToHub", true, "To The Hub", "warps");
+	settings.Add("warpsFromHub", true, "From The Hub", "warps");
+
+
 	for(int i = 0; i < vars.mainLevelNames.Count; ++i)
 		settings.Add(vars.mainLevelNames[i].Item1, false, vars.mainLevelNames[i].Item2);
+
+	var ordinalNames = new List<string> {"First", "Second", "Third", "Fourth"};
 
 	var keysToAdd = new List<string> {
 		"Level Keys",
@@ -447,70 +443,98 @@ startup
 		"Eagle Feathers",
 		"Talismans",
 		"Weapons",
-		"Mission Objects"
+		"Mission Objects",
+		"Bosses"
 	};
 
-	foreach(KeyValuePair<string, List<Tuple<List<Tuple<string, int, int, int>>, List<int>, int, int>>> entry in vars.gameAddresses)
+	for(int i = 0; i < keysToAdd.Count; ++i)
 	{	
-		if(keysToAdd.Contains(entry.Key))
+		var entryKey = keysToAdd[i];
+		var entryValue = vars.gameAddresses[entryKey];
+
+		if(entryKey == "Bosses")
+		{			
+			for(int j = 3; j < vars.bossData.Count; ++j)
+			{
+				var cBossName = vars.bossData[j].Item1;
+				var cBossNameKey = vars.toLowerCamelCase(cBossName);
+				var cBossPhaseCount = vars.bossData[j].Item2;		
+				settings.Add(cBossNameKey, false, cBossName,
+					j != vars.bossData.Count - 1 ? vars.mainLevelNames[j].Item1 : null);
+				for(int k = 0; k < cBossPhaseCount; ++k) 
+					settings.Add(vars.toLowerCamelCase(cBossName + "Phase" + (k + 1).ToString()), false,
+						ordinalNames[k] + " Phase", cBossNameKey);
+			}
+		}
+		else
 		{
 			var cLevelEntryCount = new List<int>(new int[vars.mainLevelNames.Count]);
 
-			for(int i = 0; i < entry.Value.Count; ++i)
+			for(int j = 0; j < entryValue.Count; ++j)
 			{	
-				var cDataTupleList = entry.Value[i].Item1;
-				for(int j = 0; j < cDataTupleList.Count; ++j) 
+				var cDataTupleList = entryValue[j].Item1;
+				for(int k = 0; k < cDataTupleList.Count; ++k) 
 				{
-					var cLevelIndex = cDataTupleList[j].Item2;
+					var cLevelIndex = cDataTupleList[k].Item2;
 					if(cLevelIndex > -1) ++cLevelEntryCount[cLevelIndex];
 				}
 			}
 
-			for(int i = 0; i < vars.mainLevelNames.Count; ++i)
+			for(int j = 0; j < vars.mainLevelNames.Count; ++j)
 			{
-				if(cLevelEntryCount[i] > 1)
-					settings.Add(vars.toLowerCamelCase(vars.mainLevelNames[i].Item1 + entry.Key),
-						false, entry.Key, vars.mainLevelNames[i].Item1);
+				if(cLevelEntryCount[j] > 1)
+					settings.Add(vars.toLowerCamelCase(vars.mainLevelNames[j].Item1 + entryKey),
+						false, entryKey, vars.mainLevelNames[j].Item1);
 			}
 
-			for(int i = 0; i < entry.Value.Count; ++i)
+			for(int j = 0; j < entryValue.Count; ++j)
 			{	
-				var cDataTupleList = entry.Value[i].Item1;
-				for(int j = 0; j < cDataTupleList.Count; ++j) 
+				var cDataTupleList = entryValue[j].Item1;
+				for(int k = 0; k < cDataTupleList.Count; ++k) 
 				{
-					var cDataTuple = cDataTupleList[j];
+					var cDataTuple = cDataTupleList[k];
 					var cName = cDataTuple.Item1;
 					var cLevelIndex = cDataTuple.Item2;
-					
+					var cMax = cDataTuple.Item4;
+
 					if(cLevelIndex > -1)
 					{
 						var cLevelKey = vars.mainLevelNames[cLevelIndex].Item1;
-						if(cLevelEntryCount[cLevelIndex] > 1)
-							settings.Add(vars.toLowerCamelCase(cLevelKey + cName), false, cName, 
-								vars.toLowerCamelCase(cLevelKey + entry.Key));
-						else
-							settings.Add(vars.toLowerCamelCase(cLevelKey + cName), false, cName, cLevelKey);
+						var cSubEntryKey = vars.toLowerCamelCase(cLevelKey + cName);
+
+						settings.Add(cSubEntryKey, false, cName, cLevelEntryCount[cLevelIndex] > 1 ?
+							vars.toLowerCamelCase(cLevelKey + entryKey) : cLevelKey);
+
+						if(entryKey == "Level Keys")
+							for(int l = 0; l < cMax; ++l)
+								settings.Add(cSubEntryKey.Remove(cSubEntryKey.Length - 1) + (l + 1).ToString(), false,
+									"Key " + cName[6] + "-" + (l + 1).ToString(), cSubEntryKey);
+					}
+					else if(entryKey == "Level Keys")
+					{
+						var level4Key = vars.mainLevelNames[vars.mainLevelNames.Count - 3].Item1;
+						var level4SubEntryKey = vars.toLowerCamelCase(level4Key + cName);	
+						
+						var level5Key = vars.mainLevelNames[vars.mainLevelNames.Count - 2].Item1;
+						var level5SubEntryKey = vars.toLowerCamelCase(level5Key + cName);
+
+						settings.Add(level4SubEntryKey, false, cName, level4Key);
+						settings.Add(level5SubEntryKey, false, cName, level5Key);
+
+						for(int l = 0; l < cMax; ++l)
+						{
+							if(l < 3)
+								settings.Add(level4SubEntryKey.Remove(level4SubEntryKey.Length - 1) + (l + 1).ToString(), false,
+									"Key " + cName[6] + "-" + (l + 1).ToString(), level4SubEntryKey);
+							else
+								settings.Add(level5SubEntryKey.Remove(level5SubEntryKey.Length - 1) + (l + 1).ToString(), false,
+									"Key " + cName[6] + "-" + (l + 1).ToString(), level5SubEntryKey);
+						}
 					}
 				}
 			}
 		}
-	}
-
-	
-	var ordinalNames = new List<string> {"First", "Second", "Third", "Fourth"};
-
-	for(int i = 3; i < vars.bossData.Count; ++i)
-	{
-		var cBossName = vars.bossData[i].Item1;
-		var cBossNameKey = vars.toLowerCamelCase(cBossName);
-		var cBossPhaseCount = vars.bossData[i].Item2;		
-		settings.Add(cBossNameKey, false, cBossName,
-			i != vars.bossData.Count - 1 ? vars.mainLevelNames[i].Item1 : null);
-		for(int j = 0; j < cBossPhaseCount; ++j) 
-			settings.Add(vars.toLowerCamelCase(cBossName + "P" + j.ToString()), false,
-				ordinalNames[j] + " Phase", cBossNameKey);
-	}
-	
+	}	
 }
 
 init
