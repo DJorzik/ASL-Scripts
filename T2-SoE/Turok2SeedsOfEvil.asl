@@ -29,6 +29,9 @@ startup
 	//=============================================================================
 	//main calc: F: +11; D: -1; 
 	//TODO change primagen -v
+	//TODO add in order
+	//TODO delete tlcc for acronyms
+	//TODO maybe better ds
 
 	vars.levelIDs = new Dictionary<string, int> {
 		{"Main Menu", 0},
@@ -435,34 +438,9 @@ startup
 	// Settings
 	//=============================================================================
 
-	var ordinalNames = new List<string> {"First", "Second", "Third", "Fourth"};
-
 	for(int i = 0; i < vars.mainLevelNames.Count; ++i)
-	{
-		var cMainLevelName = vars.toLowerCamelCase(vars.mainLevelNames[i].Item1);
-		var cBossName = vars.bossData[i].Item1;
-		var cBossPhaseCount = vars.bossData[i].Item2;
+		settings.Add(vars.mainLevelNames[i].Item1, false, vars.mainLevelNames[i].Item2);
 
-		settings.Add(cMainLevelName, false, vars.mainLevelNames[i].Item2);
-		if(cBossName.Length != 0) 
-		{
-			var cBossNameKey = vars.toLowerCamelCase(cBossName);
-			settings.Add(cBossNameKey, false, cBossName, cMainLevelName);
-			for(int j = 0; j < cBossPhaseCount; ++j) 
-				settings.Add(vars.toLowerCamelCase(cBossName + "P" + j.ToString()), false,
-					ordinalNames[j] + " Phase", cBossNameKey);
-		}
-	}
-
-	var endbossName = vars.bossData[vars.bossData.Count - 1].Item1;
-	var endbossPhaseCount = vars.bossData[vars.bossData.Count - 1].Item2;
-	var endbossNameKey = vars.toLowerCamelCase(endbossName);
-
-	settings.Add(endbossNameKey, false, endbossName);
-	for(int i = 0; i < endbossPhaseCount; ++i) 
-		settings.Add(vars.toLowerCamelCase(endbossName + "P" + i.ToString()), false,
-			ordinalNames[i] + " Phase", endbossNameKey);
-	
 	var keysToAdd = new List<string> {
 		"Level Keys",
 		"Primagen Keys",
@@ -492,7 +470,7 @@ startup
 			{
 				if(cLevelEntryCount[i] > 1)
 					settings.Add(vars.toLowerCamelCase(vars.mainLevelNames[i].Item1 + entry.Key),
-						false, entry.Key, vars.toLowerCamelCase(vars.mainLevelNames[i].Item1));
+						false, entry.Key, vars.mainLevelNames[i].Item1);
 			}
 
 			for(int i = 0; i < entry.Value.Count; ++i)
@@ -511,12 +489,26 @@ startup
 							settings.Add(vars.toLowerCamelCase(cLevelKey + cName), false, cName, 
 								vars.toLowerCamelCase(cLevelKey + entry.Key));
 						else
-							settings.Add(vars.toLowerCamelCase(cLevelKey + cName), false, cName, 
-								vars.toLowerCamelCase(cLevelKey));
+							settings.Add(vars.toLowerCamelCase(cLevelKey + cName), false, cName, cLevelKey);
 					}
 				}
 			}
 		}
+	}
+
+	
+	var ordinalNames = new List<string> {"First", "Second", "Third", "Fourth"};
+
+	for(int i = 3; i < vars.bossData.Count; ++i)
+	{
+		var cBossName = vars.bossData[i].Item1;
+		var cBossNameKey = vars.toLowerCamelCase(cBossName);
+		var cBossPhaseCount = vars.bossData[i].Item2;		
+		settings.Add(cBossNameKey, false, cBossName,
+			i != vars.bossData.Count - 1 ? vars.mainLevelNames[i].Item1 : null);
+		for(int j = 0; j < cBossPhaseCount; ++j) 
+			settings.Add(vars.toLowerCamelCase(cBossName + "P" + j.ToString()), false,
+				ordinalNames[j] + " Phase", cBossNameKey);
 	}
 	
 }
