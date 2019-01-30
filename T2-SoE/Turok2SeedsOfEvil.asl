@@ -606,11 +606,11 @@ update
 start
 {
 		var isNewGame = vars.watchers["levelId"].Old == vars.levelIDs["Main Menu"] &&
-						vars.watchers["levelId"].Current == vars.levelIDs["Intro1"];
+			vars.watchers["levelId"].Current == vars.levelIDs["Intro1"];
 
 		var isLoadingSave = !vars.watchers["inMenu"].Current && 
-							vars.watchers["isLoading"].Old &&
-							!vars.watchers["isLoading"].Current;
+			vars.watchers["isLoading"].Old &&
+			!vars.watchers["isLoading"].Current;
 
 		return isNewGame || isLoadingSave;
 }					      
@@ -624,7 +624,7 @@ split
 reset
 {
 	var isTransitionToMainMenu =  vars.watchers["levelId"].Old != vars.levelIDs["Main Menu"] &&
-								  vars.watchers["levelId"].Current == vars.levelIDs["Main Menu"];
+		vars.watchers["levelId"].Current == vars.levelIDs["Main Menu"];
 
 	return isTransitionToMainMenu; 
 }
