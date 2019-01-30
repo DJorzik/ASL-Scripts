@@ -605,7 +605,14 @@ update
 
 start
 {
+		var isNewGame = vars.watchers["levelId"].Old == vars.levelIDs["Main Menu"] &&
+						vars.watchers["levelId"].Current == vars.levelIDs["Intro1"];
 
+		var isLoadingSave = !vars.watchers["inMenu"].Current && 
+							vars.watchers["isLoading"].Old &&
+							!vars.watchers["isLoading"].Current;
+
+		return isNewGame || isLoadingSave;
 }					      
 
 split
@@ -616,12 +623,15 @@ split
 
 reset
 {
-	return old.levelID != vars.mainMenu && current.levelID == vars.mainMenu; 
+	var isTransitionToMainMenu =  vars.watchers["levelId"].Old != vars.levelIDs["Main Menu"] &&
+								  vars.watchers["levelId"].Current == vars.levelIDs["Main Menu"];
+
+	return isTransitionToMainMenu; 
 }
 
 isLoading
 {
 	//Simple Load Time Removal if you enable "Game Time" in Auto Splitter Settings
 
-	return current.isLoading;
+	return vars.watchers["isLoading"].Current;
 }
