@@ -2,8 +2,10 @@
 // For instructions or premade splits visit my github page: https://github.com/DJorzik/ASL-Scripts
 // Special thanks to DvD_01 for testing and answering questions
  
-//TODO CHANGE DESCRIPTION / NEW LINK / REFER TO SPEEDRUN.COM
+//TODO CHANGE DESCRIPTION / NEW LINK / REFER TO SPEEDRUN.COM 
+//(I.E. NOT SAVING PHASE CHANGE, NOT USING ACTUAL SIZES )
 //TODO CLEANUP & PERFORMANCE
+//TODO FUN INJECTIONS (MP WEAPONS, etc.)
 
 state("Turok2")
 {
@@ -12,9 +14,12 @@ state("Turok2")
 
 startup
 {
+	//=============================================================================
+	// Initialization
+	//=============================================================================
+
 	vars.watchers = new MemoryWatcherList();
 	vars.isSplit = false;
-	vars.isPrimagensLastPhase = false;
 
 	//=============================================================================
 	// Data and Memory Addresses
@@ -25,13 +30,14 @@ startup
 	//TODO SKIP IF NOT CHECKED
 	//TODO ORDER (LEVEL KEYS, WEAPONS ...)
 	//TODO REMOVE KeysToAdd OR TEST
-	//TODO UPDATE SPECIFIC WATCHERS
 	//TODO LEVEL WARPS
 	//TODO NAMING
 	//TODO EXCLUDE LOAD ITEM SPLIT
 	//TODO EVERY SPLIT SHOULD BE REPEATABLE (MAYBE OPTIONAL)
-	//TODO RESET vars.isPrimagensLastPhase IF isLoading
 	//TODO DEFAULT VALUES
+	//TODO TOTEMS & -1 KEYS
+
+	//TODO bossData -> LevelInfo
 
 	//most of the performance issues are caused by too many watchers & inefficient update
 
@@ -54,7 +60,7 @@ startup
 		{"Mantid Queen Boss", 2},
 		{"Mother Boss", 3},
 		{"Primagen Endboss", 4},
-		{"Intro1", 50},
+		{"Intro 1", 50},
 		{"Hub", 60}
 	};
 
@@ -425,12 +431,17 @@ startup
 				Tuple.Create("Primagen Tentacle 2", -1, 0, 20), //P1
 				Tuple.Create("Primagen Tentacle 3", -1, 0, 20), //P1
 				Tuple.Create("Primagen Tentacle 4", -1, 0, 20)  //P1
-			}, new List<int> {0x136879}, 0x4, 1)
+			}, new List<int> {0x136879}, 0x4, 1),
+
+			//MSB of Primagen Head
+			Tuple.Create(new List<Tuple<string, int, int, int>> {
+				Tuple.Create("Is Primagen Head Underflow", -1, 0, 1)
+			}, new List<int> {0x13687F}, 0x0, 0)
 		}}
 	};
 
 	//=============================================================================
-	// Debug and Utility Functions
+	// Debug Functions
 	//=============================================================================
 
 	Action<string> DebugOutput = (s) => {
@@ -438,22 +449,7 @@ startup
 	};
 	vars.DebugOutput = DebugOutput;
 
-	Func<string, string> toLowerCamelCase = (s) => {
-		var x = s.Replace(" ", string.Empty)
-			.Replace("/", string.Empty)
-			.Replace("\\", string.Empty)
-			.Replace("(", string.Empty)
-			.Replace(")", string.Empty)
-			.Replace("]", string.Empty)
-			.Replace("[", string.Empty)
-			.Replace(".", string.Empty);
-		x = System.Text.RegularExpressions.Regex.Replace(x, "([A-Z])([A-Z]+)($|[A-Z])",
-			m => m.Groups[1].Value + m.Groups[2].Value.ToLower() + m.Groups[3].Value);
-		return char.ToLower(x[0]) + x.Substring(1);
-	};
-	vars.toLowerCamelCase = toLowerCamelCase;
-
-	Action<string> DebugOutputCategory = (category) => {
+	Action<string, Process> DebugOutputCategory = (category, p) => {
 		var cTupleList = vars.gameAddresses[category];
 		DebugOutput("======== " + category.ToUpper() + " ========");
 		for(int i = 0; i < cTupleList.Count; ++i)
@@ -461,8 +457,10 @@ startup
 			var cTuple = cTupleList[i];
 			for(int j = 0; j < cTuple.Item1.Count; ++j)
 			{
-				var cName = toLowerCamelCase(cTuple.Item1[j].Item1); 
-				DebugOutput(cName + ": " + vars.watchers[cName].Current);
+				var cName = cTuple.Item1[j].Item1; 
+				var cWatcher = vars.watchers[cName];
+				cWatcher.Update(p);
+				DebugOutput(cName + ": " + cWatcher.Current);
 			}
 		}
 	};
@@ -471,12 +469,12 @@ startup
 	//=============================================================================
 	// Settings
 	//=============================================================================
-
+	
 	settings.Add("deleteLater", true, "======== order for some parts doesn't matter for now ========");
-	settings.Add("warps", true, "Warp Transitions");
-	settings.Add("warpsToHub", true, "To The Hub", "warps");
-	settings.Add("warpsFromHub", false, "From The Hub", "warps");
-
+	settings.Add("Warps", true, "Warp Transitions");
+	settings.Add("Warps To Hub", true, "To The Hub", "Warps");
+	settings.Add("Warps From Hub", false, "From The Hub", "Warps");
+	
 	for(int i = 0; i < vars.mainLevelNames.Count; ++i)
 		settings.Add(vars.mainLevelNames[i].Item1, false, vars.mainLevelNames[i].Item2);
 
@@ -490,15 +488,12 @@ startup
 			for(int j = 3; j < vars.bossData.Count; ++j)
 			{
 				var cBossName = vars.bossData[j].Item1;
-				var cBossNameKey = vars.toLowerCamelCase(cBossName);
 				var cBossPhaseCount = vars.bossData[j].Item2;		
-				settings.Add(cBossNameKey, false, cBossName,
+				settings.Add(cBossName, false, cBossName,
 					j != vars.bossData.Count - 1 ? vars.mainLevelNames[j].Item1 : null);
 				for(int k = 0; k < cBossPhaseCount; ++k) 
-				{
-					settings.Add(vars.toLowerCamelCase(cBossName + "Phase" + (k + 1).ToString()), false,
-						ordinalNames[k] + " Phase", cBossNameKey);
-				}
+					settings.Add(cBossName + " Phase " + (k + 1).ToString(), false,
+						ordinalNames[k] + " Phase", cBossName);
 			} 
 		}
 		else
@@ -518,7 +513,7 @@ startup
 			for(int j = 0; j < vars.mainLevelNames.Count; ++j)
 			{
 				if(cLevelEntryCount[j] > 1)
-					settings.Add(vars.toLowerCamelCase(vars.mainLevelNames[j].Item1 + entryKey),
+					settings.Add(vars.mainLevelNames[j].Item1 + " " + entryKey,
 						false, entryKey, vars.mainLevelNames[j].Item1);
 			}
 
@@ -536,17 +531,17 @@ startup
 					if(cLevelIndex > -1)
 					{
 						var cLevelKey = vars.mainLevelNames[cLevelIndex].Item1;
-						var cSubEntryKey = vars.toLowerCamelCase(cLevelKey + cName);
+						var cSubEntryKey = cLevelKey + " " + cName;
 
 						settings.Add(cSubEntryKey, false, cName, cLevelEntryCount[cLevelIndex] > 1 ?
-							vars.toLowerCamelCase(cLevelKey + entryKey) : cLevelKey);
+							cLevelKey + " " + entryKey : cLevelKey);
 
 						if(entryKey == "Level Keys")
 						{
 							for(int l = cMin; l < cMax; ++l)
 							{
 								var cSubKeyCount = (l + 1).ToString();
-								settings.Add(cSubEntryKey.Remove(cSubEntryKey.Length - 1) + cSubKeyCount, false,
+								settings.Add(cSubEntryKey.Remove(cSubEntryKey.Length - 1) + " " + cSubKeyCount, false,
 									"Key " + cName[6] + "-" + cSubKeyCount, cSubEntryKey);
 							}
 						}
@@ -559,12 +554,142 @@ startup
 
 init
 {
+	//=============================================================================
+	// Initialization
+	//=============================================================================
+
 	timer.IsGameTimePaused = false;
 	vars.isSplit = false;
-	vars.isPrimagensLastPhase = false;
+	
+	//=============================================================================
+	// Utility Functions
+	//=============================================================================
+
+	Func<bool> isBlindPhaseChange = () => {
+		var wBlindPhase = vars.watchers["Blind Phase"];
+		wBlindPhase.Update(game);
+		return (
+			wBlindPhase.Old != wBlindPhase.Current && (
+				   settings["The Blind One Boss Phase 1"] && wBlindPhase.Old == 5 
+				|| settings["The Blind One Boss Phase 2"] && wBlindPhase.Old == 4
+				|| settings["The Blind One Boss Phase 3"] && wBlindPhase.Old == 6
+				|| settings["The Blind One Boss Phase 4"] && wBlindPhase.Old == 9
+			)
+		);		
+	};
+	vars.isBlindPhaseChange = isBlindPhaseChange;
+
+	Func<bool> isQueenPhaseChange = () => {
+		var wQueenPhase = vars.watchers["Queen Phase"];
+		wQueenPhase.Update(game);
+		return (
+			wQueenPhase.Old != wQueenPhase.Current && (
+				   settings["Mantid Queen Boss Phase 1"] && wQueenPhase.Old == 2
+				|| settings["Mantid Queen Boss Phase 2"] && wQueenPhase.Old == 4
+				|| settings["Mantid Queen Boss Phase 3"] && wQueenPhase.Old == 6
+				|| settings["Mantid Queen Boss Phase 4"] && wQueenPhase.Old == 7
+			)
+		); 		
+	};
+	vars.isQueenPhaseChange = isQueenPhaseChange;
+
+	Func<bool> isMotherPhaseChange = () => {
+		var wMotherBTRHP = vars.watchers["Mother Big Tentacle Right"];
+		var wMotherT1RHP = vars.watchers["Mother Tentacle 1R"];
+		var wMotherT2RHP = vars.watchers["Mother Tentacle 2R"];
+		var wMotherT3RHP = vars.watchers["Mother Tentacle 3R"];
+		var wMotherBTLHP = vars.watchers["Mother Big Tentacle Left"];
+		var wMotherT1LHP = vars.watchers["Mother Tentacle 1L"];
+		var wMotherT2LHP = vars.watchers["Mother Tentacle 2L"];
+		var wMotherT3LHP = vars.watchers["Mother Tentacle 3L"];
+		var wMotherHeadHP = vars.watchers["Mother Head"];
+		
+		wMotherBTRHP.Update(game);
+		wMotherT1RHP.Update(game);
+		wMotherT2RHP.Update(game);
+		wMotherT3RHP.Update(game);
+		wMotherBTLHP.Update(game);
+		wMotherT1LHP.Update(game);
+		wMotherT2LHP.Update(game);
+		wMotherT3LHP.Update(game);
+		wMotherHeadHP.Update(game);
+
+		var isFirstPhaseChange = (
+			   wMotherT1RHP.Current == 0 
+			&& wMotherT2RHP.Current == 0 
+			&& wMotherT3RHP.Current == 0 
+			&& wMotherT1LHP.Current == 0
+			&& wMotherT2LHP.Current == 0 
+			&& wMotherT3LHP.Current == 0 
+			&& (
+				   wMotherT1RHP.Old != 0
+				|| wMotherT2RHP.Old != 0
+				|| wMotherT3RHP.Old != 0
+				|| wMotherT1LHP.Old != 0
+				|| wMotherT2LHP.Old != 0
+				|| wMotherT3LHP.Old != 0
+			)
+		);
+
+		var isSecondPhaseChange =  (
+			   wMotherBTRHP.Current == 0
+			&& wMotherBTLHP.Current == 0
+			&& (
+				   wMotherBTRHP.Old != 0
+				|| wMotherBTLHP.Old != 0
+			)
+		);
+
+		var isThirdPhaseChange = (
+			   wMotherHeadHP.Old != 0 
+			&& wMotherHeadHP.Current == 0
+		);
+
+		return (
+			   settings["Mother Boss Phase 1"] && isFirstPhaseChange
+			|| settings["Mother Boss Phase 2"] && isSecondPhaseChange
+			|| settings["Mother Boss Phase 3"] && isThirdPhaseChange
+		);		
+	};
+	vars.isMotherPhaseChange = isMotherPhaseChange;
+
+	Func<bool> isPrimagenPhaseChange = () => {
+		var wPrimagenHP = vars.watchers["Primagen HP"];
+		var wPrimagenHeadHP = vars.watchers["Primagen Head"];
+		var wIsPrimagenHeadUF = vars.watchers["Is Primagen Head Underflow"];
+
+		wPrimagenHP.Update(game);
+		wPrimagenHeadHP.Update(game);
+		wIsPrimagenHeadUF.Update(game);
+
+		return (
+			wPrimagenHP.Old == 0 && (
+				   settings["Primagen Endboss Phase 1"] && wPrimagenHP.Current == 130
+				|| settings["Primagen Endboss Phase 2"] && wPrimagenHP.Current == 200		
+			)
+			|| (
+				   settings["Primagen Endboss Phase 3"] 
+				&& wPrimagenHeadHP.Old != 0 && !wIsPrimagenHeadUF.Old
+				&& (wPrimagenHeadHP.Current == 0 || wIsPrimagenHeadUF.Current)
+			)
+		);
+	};
+	vars.isPrimagenPhaseChange = isPrimagenPhaseChange;
+
+	Func<string, bool> isPhaseChangeOf = (s) => {
+		switch(s)
+		{
+			case "The Blind One Boss":	return vars.isBlindPhaseChange();
+			case "Mantid Queen Boss":	return vars.isQueenPhaseChange();
+			case "Mother Boss":			return vars.isMotherPhaseChange();
+			case "Primagen Endboss":	return vars.isPrimagenPhaseChange();
+			default:					return false;
+		}
+	};
+	vars.isPhaseChangeOf = isPhaseChangeOf;
 
 	//=============================================================================
-	// Memory Watcher
+	// Memory Watchers
 	//=============================================================================
 
 	foreach(KeyValuePair<string, List<Tuple<List<Tuple<string, int, int, int>>, List<int>, int, int>>> entry in vars.gameAddresses)
@@ -585,7 +710,7 @@ init
 				for(int j = 0; j < cDataTupleList.Count; ++j) 
 				{
 					var cDataTuple = cDataTupleList[j];
-					var cName = vars.toLowerCamelCase(cDataTuple.Item1);
+					var cName = cDataTuple.Item1;
 					var cDeepPointer = new DeepPointer(cPointerPath[0], cPointerPath.GetRange(1, cPointerPath.Count - 1).ToArray());
 					switch(cType)
 					{
@@ -604,18 +729,18 @@ init
 						default: vars.DebugOutput("ERROR: " + cName + " has no valid type index."); break;
 					}
 
-					vars.watchers[cName].Update(game);
+					var cWatcher = vars.watchers[cName];
+					cWatcher.Update(game);
 					vars.DebugOutput("Added MemoryWatcher " + cName + " with Base: " + cPointerPath[0].ToString("X") + ","
 									+ " Last Offset: " + cPointerPath[cPointerPath.Count - 1].ToString("X") + " and"
-									+ " Current Value: " + vars.watchers[cName].Current);
+									+ " Current Value: " + cWatcher.Current);
 
 					cPointerPath[cPointerPath.Count - 1] += cOffset;
 				}
 			}
 			else vars.DebugOutput("------------ TUPLE " + (i+1).ToString() + " SKIPPED ------------");
 		}
-	}
-	
+	}	
 }
 
 exit
@@ -625,86 +750,41 @@ exit
 
 update
 {
-	vars.watchers.UpdateAll(game);
-	vars.isSplit = false;
-	var cLevelID = vars.watchers["levelId"];
-
 	//TODO REFACTOR QUICK & DIRTY (Check Only Relevant Things & return)
+	//TODO ONLY WHAT IS NEEDED (LEVEL SPECIFIC)
+	//TODO DELETE LEVEL ABREV
+	//TODO REVERSE DICTIONARY dictionary.Reverse(); where performance is not important
 
-	if(settings["warpsToHub"] && cLevelID.Old != vars.levelIDs["Hub"] && cLevelID.Current == vars.levelIDs["Hub"]) vars.isSplit = true;
-	else if(settings["warpsFromHub"] && cLevelID.Old == vars.levelIDs["Hub"] && cLevelID.Current != vars.levelIDs["Hub"]) vars.isSplit = true;
+	//=============================================================================
+	// Global Watcher Updates
+	//=============================================================================
+
+	var wLevelID = vars.watchers["Level ID"];
+	var wIsLoading = vars.watchers["Is Loading"];
+	var wInMenu = vars.watchers["In Menu"];
+
+	wLevelID.Update(game);
+	wIsLoading.Update(game);
+	wInMenu.Update(game);
+
+	//=============================================================================
+	// Splitting
+	//=============================================================================
+
+	vars.isSplit = false;
+	var hubID = vars.levelIDs["Hub"];
+
+	if(settings["Warps To Hub"] && wLevelID.Old != hubID && wLevelID.Current == hubID) vars.isSplit = true;
+	else if(settings["Warps From Hub"] && wLevelID.Old == hubID && wLevelID.Current != hubID) vars.isSplit = true;
 
 	foreach(KeyValuePair<string, List<Tuple<List<Tuple<string, int, int, int>>, List<int>, int, int>>> entry in vars.gameAddresses)
 	{
 		if(entry.Key == "Bosses")
 		{
-			if(cLevelID.Current == vars.levelIDs["The Blind One Boss"])
-			{
-				var cBlindPhase = vars.watchers["blindPhase"];
-				if(cBlindPhase.Old != cBlindPhase.Current)
-				{
-					if(settings["theBlindOneBossPhase1"] && cBlindPhase.Old == 5 || 
-					settings["theBlindOneBossPhase2"] && cBlindPhase.Old == 4 || 
-					settings["theBlindOneBossPhase3"] && cBlindPhase.Old == 6 || 
-					settings["theBlindOneBossPhase4"] && cBlindPhase.Old == 9) vars.isSplit = true;
-				}
-			}
-			else if(cLevelID.Current == vars.levelIDs["Mantid Queen Boss"])
-			{
-				var cQueenPhase = vars.watchers["queenPhase"];
-				if(cQueenPhase.Old != cQueenPhase.Current)
-				{
-					if(settings["mantidQueenBossPhase1"] && cQueenPhase.Old == 2 || 
-					settings["mantidQueenBossPhase2"] && cQueenPhase.Old == 4 || 
-					settings["mantidQueenBossPhase3"] && cQueenPhase.Old == 6 || 
-					settings["mantidQueenBossPhase4"] && cQueenPhase.Old == 7) vars.isSplit = true;
-				}
-			}
-			else if(cLevelID.Current == vars.levelIDs["Mother Boss"])
-			{				
-				var cMotherBTRHP = vars.watchers["motherBigTentacleRight"];
-				var cMotherT1RHP = vars.watchers["motherTentacle1R"];
-				var cMotherT2RHP = vars.watchers["motherTentacle2R"];
-				var cMotherT3RHP = vars.watchers["motherTentacle3R"];
-				var cMotherBTLHP = vars.watchers["motherBigTentacleLeft"];
-				var cMotherT1LHP = vars.watchers["motherTentacle1L"];
-				var cMotherT2LHP = vars.watchers["motherTentacle2L"];
-				var cMotherT3LHP = vars.watchers["motherTentacle3L"];
-				var cMotherHeadHP = vars.watchers["motherHead"];
-
-				var isFirstPhaseChange = (cMotherT1RHP.Old != 0 || cMotherT2RHP.Old != 0 || cMotherT3RHP.Old != 0 || 
-										 cMotherT1LHP.Old != 0 || cMotherT2LHP.Old != 0 || cMotherT3LHP.Old != 0) &&
-										 cMotherT1RHP.Current == 0 && cMotherT2RHP.Current == 0 && cMotherT3RHP.Current == 0 &&
-										 cMotherT1LHP.Current == 0 && cMotherT2LHP.Current == 0 && cMotherT3LHP.Current == 0;
-
-				var isSecondPhaseChange = (cMotherBTRHP.Old != 0 || cMotherBTLHP.Old != 0) &&
-										  cMotherBTRHP.Current == 0 && cMotherBTLHP.Current == 0;
-
-				var isThirdPhaseChange = cMotherHeadHP.Old != 0 && cMotherHeadHP.Current == 0;
-
-				if(settings["motherBossPhase1"] && isFirstPhaseChange || 
-				settings["motherBossPhase2"] && isSecondPhaseChange || 
-				settings["motherBossPhase3"] && isThirdPhaseChange) vars.isSplit = true;
-			}
-			else if(cLevelID.Current == vars.levelIDs["Primagen Endboss"])
-			{
-				var cPrimagenHP = vars.watchers["primagenHp"];
-
-				if(cPrimagenHP.Old == 0)
-				{
-					if(settings["primagenEndbossPhase1"] && cPrimagenHP.Current == 130) vars.isSplit = true;
-					else if(settings["primagenEndbossPhase2"] && cPrimagenHP.Current == 200)
-					{
-						vars.isSplit = true;
-						vars.isPrimagensLastPhase = true;
-					}
-				}
-				else if(settings["primagenEndbossPhase3"] && vars.isPrimagensLastPhase && cPrimagenHP.Current == 0)
-				{
-					vars.isSplit = true;
-					vars.isPrimagensLastPhase = false;
-				}
-			}
+			if(wLevelID.Current == vars.levelIDs["The Blind One Boss"] && vars.isPhaseChangeOf("The Blind One Boss")
+			|| wLevelID.Current == vars.levelIDs["Mantid Queen Boss"] && vars.isPhaseChangeOf("Mantid Queen Boss")
+			|| wLevelID.Current == vars.levelIDs["Mother Boss"] && vars.isPhaseChangeOf("Mother Boss")
+			|| wLevelID.Current == vars.levelIDs["Primagen Endboss"] && vars.isPhaseChangeOf("Primagen Endboss")) vars.isSplit = true;
 		}
 		else
 		{
@@ -725,25 +805,31 @@ update
 					{
 						switch(entry.Key)
 						{
-							case "Weapons": 
-								if(settings[vars.toLowerCamelCase(vars.mainLevelNames[cLevelIndex].Item1 + cName)] &&
-								!vars.watchers[vars.toLowerCamelCase(cName)].Old && vars.watchers[vars.toLowerCamelCase(cName)].Current)
+							case "Weapons":
+								var cwWeapon = vars.watchers[cName];
+								cwWeapon.Update(game);
+								if(settings[vars.mainLevelNames[cLevelIndex].Item1 + " " + cName] &&
+								!cwWeapon.Old && cwWeapon.Current)
 									vars.isSplit = true;
 								break;
 							case "Level Keys":
-								var cSubEntryKey = vars.mainLevelNames[cLevelIndex].Item1 + cName;
+								var cwLevelKey = vars.watchers[cName];
+								cwLevelKey.Update(game);
+								var cSubEntryKey = vars.mainLevelNames[cLevelIndex].Item1 + " " + cName;
 								cSubEntryKey = cSubEntryKey.Remove(cSubEntryKey.Length - 1);
 								for(int l = cMin; l < cMax; ++l)								
-									if(settings[vars.toLowerCamelCase(cSubEntryKey + (l + 1).ToString())] && 
-									vars.watchers[vars.toLowerCamelCase(cName)].Old < vars.watchers[vars.toLowerCamelCase(cName)].Current)
+									if(settings[cSubEntryKey + " " + (l + 1).ToString()] && 
+									cwLevelKey.Old < cwLevelKey.Current)
 										vars.isSplit = true; 
 								break;
 							case "Primagen Keys":
 							case "Eagle Feathers": 
 							case "Talismans": 
-							case "Nuke Parts": 
-								if(settings[vars.toLowerCamelCase(vars.mainLevelNames[cLevelIndex].Item1 + cName)] && 
-								vars.watchers[vars.toLowerCamelCase(cName)].Old < vars.watchers[vars.toLowerCamelCase(cName)].Current)
+							case "Nuke Parts":
+								var cwEntity = vars.watchers[cName];
+								cwEntity.Update(game);
+								if(settings[vars.mainLevelNames[cLevelIndex].Item1 + " " + cName] && 
+								cwEntity.Old < cwEntity.Current)
 									vars.isSplit = true;
 								break;	
 						}
@@ -757,30 +843,38 @@ update
 
 start
 {
-		var isNewGame = vars.watchers["levelId"].Old == vars.levelIDs["Main Menu"] &&
-			vars.watchers["levelId"].Current == vars.levelIDs["Intro1"];
+	var wLevelID = vars.watchers["Level ID"];
+	var wIsLoading = vars.watchers["Is Loading"];
+	var wInMenu = vars.watchers["In Menu"];
 
-		var isLoadingSave = !vars.watchers["inMenu"].Current && 
-			vars.watchers["isLoading"].Old &&
-			!vars.watchers["isLoading"].Current;
+	var isNewGame = wLevelID.Old == vars.levelIDs["Main Menu"] &&
+		wLevelID.Current == vars.levelIDs["Intro 1"];
 
-		return isNewGame || isLoadingSave;
+	var isLoadingSave = !wInMenu.Current && 
+		wIsLoading.Old && !wIsLoading.Current;
+
+	return isNewGame || isLoadingSave;
 }					      
 
 split
 {
-		return vars.isSplit && !vars.watchers["inMenu"].Current;		   
+	var wInMenu = vars.watchers["In Menu"];
+	return vars.isSplit && !wInMenu.Current;		   
 }
 
 reset
 {
-	var isTransitionToMainMenu =  vars.watchers["levelId"].Old != vars.levelIDs["Main Menu"] &&
-		vars.watchers["levelId"].Current == vars.levelIDs["Main Menu"];
+	var wLevelID = vars.watchers["Level ID"];
+	var mainMenuID = vars.levelIDs["Main Menu"];
+
+	var isTransitionToMainMenu =  wLevelID.Old != mainMenuID &&
+		wLevelID.Current == mainMenuID;
 
 	return isTransitionToMainMenu; 
 }
 
 isLoading
 {
-	return vars.watchers["isLoading"].Current;
+	var wIsLoading = vars.watchers["Is Loading"];
+	return wIsLoading.Current;
 }
