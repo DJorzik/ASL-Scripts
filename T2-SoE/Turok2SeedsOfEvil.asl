@@ -29,21 +29,13 @@ startup
 	//TODO ADD MISSIONS
 	//TODO SKIP IF NOT CHECKED
 	//TODO ORDER (LEVEL KEYS, WEAPONS ...)
-	//TODO REMOVE KeysToAdd OR TEST
-	//TODO LEVEL WARPS
-	//TODO NAMING
-	//TODO EXCLUDE LOAD ITEM SPLIT
-	//TODO EVERY SPLIT SHOULD BE REPEATABLE (MAYBE OPTIONAL)
 	//TODO DEFAULT VALUES
-	//TODO TOTEMS & -1 KEYS
-
-	//TODO bossData -> LevelInfo
-
-	//most of the performance issues are caused by too many watchers & inefficient update
+	//TODO TOTEMS & -1 KEYS & HUB
+	//TODO COMMENT OUT DEBUG STUFF
 
 	var ordinalNames = new List<string> {"First", "Second", "Third", "Fourth"};
 
-	var keysToAdd = new List<string> {
+	vars.keysToAdd = new List<string> {
 		"Level Keys",
 		"Primagen Keys",
 		"Eagle Feathers",
@@ -64,13 +56,13 @@ startup
 		{"Hub", 60}
 	};
 
-	vars.mainLevelNames = new List<Tuple<string, string>> {
-		Tuple.Create("poa", "Port of Adia"),
-		Tuple.Create("ros", "River Of Souls"),
-		Tuple.Create("dm", "Death Marshes"),
-		Tuple.Create("lotbo", "Lair Of The Blind Ones"),
-		Tuple.Create("hotm", "Hive Of The Mantids"),
-		Tuple.Create("pl", "Primagens Lightship")
+	vars.mainLevelNames = new List<string> {
+		"Port of Adia",
+		"River Of Souls",
+		"Death Marshes",
+		"Lair Of The Blind Ones",
+		"Hive Of The Mantids",
+		"Primagens Lightship"
 	};
 	
 	vars.bossData = new List<Tuple<string, int>> {
@@ -476,11 +468,14 @@ startup
 	settings.Add("Warps From Hub", false, "From The Hub", "Warps");
 	
 	for(int i = 0; i < vars.mainLevelNames.Count; ++i)
-		settings.Add(vars.mainLevelNames[i].Item1, false, vars.mainLevelNames[i].Item2);
+	{
+		var cLevelName = vars.mainLevelNames[i];
+		settings.Add(cLevelName, false, cLevelName);
+	}
 
-	for(int i = 0; i < keysToAdd.Count; ++i)
+	for(int i = 0; i < vars.keysToAdd.Count; ++i)
 	{	
-		var entryKey = keysToAdd[i];
+		var entryKey = vars.keysToAdd[i];
 		var entryValue = vars.gameAddresses[entryKey];
 
 		if(entryKey == "Bosses")
@@ -490,7 +485,7 @@ startup
 				var cBossName = vars.bossData[j].Item1;
 				var cBossPhaseCount = vars.bossData[j].Item2;		
 				settings.Add(cBossName, false, cBossName,
-					j != vars.bossData.Count - 1 ? vars.mainLevelNames[j].Item1 : null);
+					j != vars.bossData.Count - 1 ? vars.mainLevelNames[j] : null);
 				for(int k = 0; k < cBossPhaseCount; ++k) 
 					settings.Add(cBossName + " Phase " + (k + 1).ToString(), false,
 						ordinalNames[k] + " Phase", cBossName);
@@ -501,8 +496,9 @@ startup
 			var cLevelEntryCount = new List<int>(new int[vars.mainLevelNames.Count]);
 
 			for(int j = 0; j < entryValue.Count; ++j)
-			{	
-				var cDataTupleList = entryValue[j].Item1;
+			{
+				var cTuple = entryValue[j];
+				var cDataTupleList = cTuple.Item1;
 				for(int k = 0; k < cDataTupleList.Count; ++k) 
 				{
 					var cLevelIndex = cDataTupleList[k].Item2;
@@ -513,13 +509,17 @@ startup
 			for(int j = 0; j < vars.mainLevelNames.Count; ++j)
 			{
 				if(cLevelEntryCount[j] > 1)
-					settings.Add(vars.mainLevelNames[j].Item1 + " " + entryKey,
-						false, entryKey, vars.mainLevelNames[j].Item1);
+				{
+					var cLevelName = vars.mainLevelNames[j];
+					settings.Add(cLevelName + " " + entryKey,
+						false, entryKey, cLevelName);
+				}
 			}
 
 			for(int j = 0; j < entryValue.Count; ++j)
-			{	
-				var cDataTupleList = entryValue[j].Item1;
+			{
+				var cTuple = entryValue[j];
+				var cDataTupleList = cTuple.Item1;
 				for(int k = 0; k < cDataTupleList.Count; ++k) 
 				{
 					var cDataTuple = cDataTupleList[k];
@@ -530,11 +530,11 @@ startup
 
 					if(cLevelIndex > -1)
 					{
-						var cLevelKey = vars.mainLevelNames[cLevelIndex].Item1;
-						var cSubEntryKey = cLevelKey + " " + cName;
+						var cLevelName = vars.mainLevelNames[cLevelIndex];
+						var cSubEntryKey = cLevelName + " " + cName;
 
 						settings.Add(cSubEntryKey, false, cName, cLevelEntryCount[cLevelIndex] > 1 ?
-							cLevelKey + " " + entryKey : cLevelKey);
+							cLevelName + " " + entryKey : cLevelName);
 
 						if(entryKey == "Level Keys")
 						{
@@ -750,10 +750,13 @@ exit
 
 update
 {
-	//TODO REFACTOR QUICK & DIRTY (Check Only Relevant Things & return)
-	//TODO ONLY WHAT IS NEEDED (LEVEL SPECIFIC)
-	//TODO DELETE LEVEL ABREV
-	//TODO REVERSE DICTIONARY dictionary.Reverse(); where performance is not important
+	//TODO REFACTORING OF QUICK & DIRTY PARTS (Check Only Relevant Things & return)
+	//TODO CHECK WHATS CHECKED & CHECK AFTER LOCATION
+	//TODO WEAPONS IN BOSSFIGHTS IGNORED (BLIND) 
+	//TODO MAYBE RETURN DIRECTLY AFTER FINDING SPLIT
+
+	//TODO NEXT: DEFINE UTILITY FUNC FOR EVERY ENTITY 
+	//(REDUCE UPDATE RATE BY PUTTING SETTINGS CHECK BEFORE UPDATE)
 
 	//=============================================================================
 	// Global Watcher Updates
@@ -773,72 +776,89 @@ update
 
 	vars.isSplit = false;
 	var hubID = vars.levelIDs["Hub"];
+	
+	if(settings["Warps"])
+		vars.isSplit |= (
+			   settings["Warps To Hub"] && wLevelID.Old != hubID && wLevelID.Current == hubID
+			|| settings["Warps From Hub"] && wLevelID.Old == hubID && wLevelID.Current != hubID
+		);
 
-	if(settings["Warps To Hub"] && wLevelID.Old != hubID && wLevelID.Current == hubID) vars.isSplit = true;
-	else if(settings["Warps From Hub"] && wLevelID.Old == hubID && wLevelID.Current != hubID) vars.isSplit = true;
+	for(int i = 0; i < vars.keysToAdd.Count; ++i)
+	{	
+		var entryKey = vars.keysToAdd[i];
+		var entryValue = vars.gameAddresses[entryKey];
 
-	foreach(KeyValuePair<string, List<Tuple<List<Tuple<string, int, int, int>>, List<int>, int, int>>> entry in vars.gameAddresses)
-	{
-		if(entry.Key == "Bosses")
+		if(entryKey == "Bosses")
 		{
-			if(wLevelID.Current == vars.levelIDs["The Blind One Boss"] && vars.isPhaseChangeOf("The Blind One Boss")
-			|| wLevelID.Current == vars.levelIDs["Mantid Queen Boss"] && vars.isPhaseChangeOf("Mantid Queen Boss")
-			|| wLevelID.Current == vars.levelIDs["Mother Boss"] && vars.isPhaseChangeOf("Mother Boss")
-			|| wLevelID.Current == vars.levelIDs["Primagen Endboss"] && vars.isPhaseChangeOf("Primagen Endboss")) vars.isSplit = true;
+			for(int j = 3; j < vars.bossData.Count; ++j)
+			{
+				var cBossName = vars.bossData[j].Item1;
+				vars.isSplit |= (
+					   settings[cBossName]
+					&& wLevelID.Current == vars.levelIDs[cBossName] 
+					&& vars.isPhaseChangeOf(cBossName)
+				);
+			}
 		}
 		else
 		{
-			for(int i = 0; i < entry.Value.Count; ++i)
+			for(int j = 0; j < entryValue.Count; ++j)
 			{
-				var cTuple = entry.Value[i];
+				var cTuple = entryValue[j];
 				var cDataTupleList = cTuple.Item1;
 				var cType = cTuple.Item4;
-				for(int j = 0; j < cDataTupleList.Count; ++j)
+				for(int k = 0; k < cDataTupleList.Count; ++k)
 				{
-					var cDataTuple = cDataTupleList[j];
+					var cDataTuple = cDataTupleList[k];
 					var cName = cDataTuple.Item1;
 					var cLevelIndex = cDataTuple.Item2;
 					var cMin = cDataTuple.Item3;
 					var cMax = cDataTuple.Item4;
 
 					if(cLevelIndex > -1)
-					{
-						switch(entry.Key)
+					{					
+						var cLevelName = vars.mainLevelNames[cLevelIndex];
+						if(settings[cLevelName])
 						{
-							case "Weapons":
-								var cwWeapon = vars.watchers[cName];
-								cwWeapon.Update(game);
-								if(settings[vars.mainLevelNames[cLevelIndex].Item1 + " " + cName] &&
-								!cwWeapon.Old && cwWeapon.Current)
-									vars.isSplit = true;
-								break;
-							case "Level Keys":
-								var cwLevelKey = vars.watchers[cName];
-								cwLevelKey.Update(game);
-								var cSubEntryKey = vars.mainLevelNames[cLevelIndex].Item1 + " " + cName;
-								cSubEntryKey = cSubEntryKey.Remove(cSubEntryKey.Length - 1);
-								for(int l = cMin; l < cMax; ++l)								
-									if(settings[cSubEntryKey + " " + (l + 1).ToString()] && 
-									cwLevelKey.Old < cwLevelKey.Current)
-										vars.isSplit = true; 
-								break;
-							case "Primagen Keys":
-							case "Eagle Feathers": 
-							case "Talismans": 
-							case "Nuke Parts":
-								var cwEntity = vars.watchers[cName];
-								cwEntity.Update(game);
-								if(settings[vars.mainLevelNames[cLevelIndex].Item1 + " " + cName] && 
-								cwEntity.Old < cwEntity.Current)
-									vars.isSplit = true;
-								break;	
+							switch((string)entryKey)
+							{
+								case "Weapons":
+									var cwWeapon = vars.watchers[cName];
+									cwWeapon.Update(game);
+									vars.isSplit |= (
+										   settings[cLevelName + " " + cName]
+										&& !cwWeapon.Old && cwWeapon.Current
+									);
+									break;
+								case "Level Keys":
+									var cwLevelKey = vars.watchers[cName];
+									cwLevelKey.Update(game);
+									var cSubEntryKey = cLevelName + " " + cName;
+									cSubEntryKey = cSubEntryKey.Remove(cSubEntryKey.Length - 1);
+									for(int l = cMin; l < cMax; ++l)								
+										vars.isSplit |= (
+											   settings[cSubEntryKey + " " + (l + 1).ToString()]
+											&& cwLevelKey.Old < cwLevelKey.Current
+										); 
+									break;
+								case "Primagen Keys":
+								case "Eagle Feathers": 
+								case "Talismans": 
+								case "Nuke Parts":
+									var cwEntity = vars.watchers[cName];
+									cwEntity.Update(game);
+									vars.isSplit |= (
+										   settings[cLevelName + " " + cName]
+										&& cwEntity.Old < cwEntity.Current
+									);
+									break;	
+							}
 						}
 					}
 				}
 			}
 		}
 	}
-
 }
 
 start
