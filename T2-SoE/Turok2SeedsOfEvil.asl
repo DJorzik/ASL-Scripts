@@ -24,13 +24,13 @@ startup
 	//=============================================================================
 	// Data and Memory Addresses
 	//=============================================================================
-	//main calc: F: +11; D: -1; 
+	//main key calc: F: +11; D: -1; 
 
 	//TODO ADD MISSIONS
-	//TODO SKIP IF NOT CHECKED
-	//TODO ORDER (LEVEL KEYS, WEAPONS ...)
-	//TODO DEFAULT VALUES
-	//TODO TOTEMS & -1 KEYS & HUB
+	//TODO WEAPONS EXTRA (1)
+	//TODO DEFAULT VALUES (2)
+	//TODO TOTEMS & -1 KEYS & INDIVIDUAL KEYS & HUB
+	//TODO WEAPONS IN BOSSFIGHTS IGNORED (BLIND) 
 	//TODO COMMENT OUT DEBUG STUFF
 
 	var ordinalNames = new List<string> {"First", "Second", "Third", "Fourth"};
@@ -45,8 +45,21 @@ startup
 		//"Mission Objects",
 		"Bosses"
 	};
+	
+	vars.mainLevelNames = new List<string> {
+		"Port of Adia",
+		"River Of Souls",
+		"Death Marshes",
+		"Lair Of The Blind Ones",
+		"Hive Of The Mantids",
+		"Primagens Lightship"
+	};
 
-	vars.levelIDs = new Dictionary<string, int> {
+	//create list of levelNames & IDs
+	//IDs need to be easily accessible while traversing bosses
+	//after creating: change how levelData & bossData are used
+
+	vars.levelData = new Dictionary<string, int> {
 		{"Main Menu", 0},
 		{"The Blind One Boss", 1},
 		{"Mantid Queen Boss", 2},
@@ -56,15 +69,6 @@ startup
 		{"Hub", 60}
 	};
 
-	vars.mainLevelNames = new List<string> {
-		"Port of Adia",
-		"River Of Souls",
-		"Death Marshes",
-		"Lair Of The Blind Ones",
-		"Hive Of The Mantids",
-		"Primagens Lightship"
-	};
-	
 	vars.bossData = new List<Tuple<string, int>> {
 		Tuple.Create(string.Empty, 0),
 		Tuple.Create(string.Empty, 0),
@@ -211,7 +215,7 @@ startup
 				Tuple.Create("Scorpion Launcher", 4, 0, 1),
 				Tuple.Create("Harpoon Gun", 3, 0, 1),
 				Tuple.Create("Torpedo Launcher", 3, 0, 1)
-			}, new List<int> {0x181B6C, 0x972}, 0x1, 0),
+			}, new List<int> {0x181B6C, 0x972}, 0x1, 1),
 
 			Tuple.Create(new List<Tuple<string, int, int, int>> {
 				Tuple.Create("Flame Thrower", 3, 0, 1),
@@ -228,7 +232,7 @@ startup
 				Tuple.Create("Scorpion Launcher (MP)", -1, 0, 1),
 				Tuple.Create("Harpoon Gun (MP)", -1, 0, 1),
 				Tuple.Create("Torpedo Launcher (MP)", -1, 0, 1)
-			}, new List<int> {0x181B6C, 0x986}, 0x1, 0)
+			}, new List<int> {0x181B6C, 0x986}, 0x1, 1)
 
 		}},
 		{ "Level Keys", new List<Tuple<List<Tuple<string, int, int, int>>, List<int>, int, int>> {	
@@ -462,7 +466,6 @@ startup
 	// Settings
 	//=============================================================================
 	
-	settings.Add("deleteLater", true, "======== order for some parts doesn't matter for now ========");
 	settings.Add("Warps", true, "Warp Transitions");
 	settings.Add("Warps To Hub", true, "To The Hub", "Warps");
 	settings.Add("Warps From Hub", false, "From The Hub", "Warps");
@@ -536,15 +539,17 @@ startup
 						settings.Add(cSubEntryKey, false, cName, cLevelEntryCount[cLevelIndex] > 1 ?
 							cLevelName + " " + entryKey : cLevelName);
 
-						if(entryKey == "Level Keys")
-						{
-							for(int l = cMin; l < cMax; ++l)
-							{
-								var cSubKeyCount = (l + 1).ToString();
-								settings.Add(cSubEntryKey.Remove(cSubEntryKey.Length - 1) + " " + cSubKeyCount, false,
-									"Key " + cName[6] + "-" + cSubKeyCount, cSubEntryKey);
-							}
-						}
+						/*
+						* if(entryKey == "Level Keys")
+						* {
+						*	for(int l = cMin; l < cMax; ++l)
+						*	{
+						*		var cSubKeyCount = (l + 1).ToString();
+						*		settings.Add(cSubEntryKey.Remove(cSubEntryKey.Length - 1) + " " + cSubKeyCount, false,
+						*			"Key " + cName[6] + "-" + cSubKeyCount, cSubEntryKey);
+						*	}
+						* }
+						*/
 					}
 				}
 			}
@@ -577,7 +582,6 @@ init
 			)
 		);		
 	};
-	vars.isBlindPhaseChange = isBlindPhaseChange;
 
 	Func<bool> isQueenPhaseChange = () => {
 		var wQueenPhase = vars.watchers["Queen Phase"];
@@ -591,30 +595,23 @@ init
 			)
 		); 		
 	};
-	vars.isQueenPhaseChange = isQueenPhaseChange;
 
-	Func<bool> isMotherPhaseChange = () => {
-		var wMotherBTRHP = vars.watchers["Mother Big Tentacle Right"];
+	Func<bool> isMotherFirstPhaseChange = () => {
 		var wMotherT1RHP = vars.watchers["Mother Tentacle 1R"];
 		var wMotherT2RHP = vars.watchers["Mother Tentacle 2R"];
-		var wMotherT3RHP = vars.watchers["Mother Tentacle 3R"];
-		var wMotherBTLHP = vars.watchers["Mother Big Tentacle Left"];
+		var wMotherT3RHP = vars.watchers["Mother Tentacle 3R"];	
 		var wMotherT1LHP = vars.watchers["Mother Tentacle 1L"];
 		var wMotherT2LHP = vars.watchers["Mother Tentacle 2L"];
 		var wMotherT3LHP = vars.watchers["Mother Tentacle 3L"];
-		var wMotherHeadHP = vars.watchers["Mother Head"];
-		
-		wMotherBTRHP.Update(game);
+
 		wMotherT1RHP.Update(game);
 		wMotherT2RHP.Update(game);
 		wMotherT3RHP.Update(game);
-		wMotherBTLHP.Update(game);
 		wMotherT1LHP.Update(game);
 		wMotherT2LHP.Update(game);
 		wMotherT3LHP.Update(game);
-		wMotherHeadHP.Update(game);
 
-		var isFirstPhaseChange = (
+		return (
 			   wMotherT1RHP.Current == 0 
 			&& wMotherT2RHP.Current == 0 
 			&& wMotherT3RHP.Current == 0 
@@ -630,8 +627,16 @@ init
 				|| wMotherT3LHP.Old != 0
 			)
 		);
+	};
 
-		var isSecondPhaseChange =  (
+	Func<bool> isMotherSecondPhaseChange = () => {
+		var wMotherBTRHP = vars.watchers["Mother Big Tentacle Right"];
+		var wMotherBTLHP = vars.watchers["Mother Big Tentacle Left"];
+
+		wMotherBTRHP.Update(game);
+		wMotherBTLHP.Update(game);
+
+		return (
 			   wMotherBTRHP.Current == 0
 			&& wMotherBTLHP.Current == 0
 			&& (
@@ -639,19 +644,24 @@ init
 				|| wMotherBTLHP.Old != 0
 			)
 		);
+	};
 
-		var isThirdPhaseChange = (
+	Func<bool> isMotherThirdPhaseChange = () => {
+		var wMotherHeadHP = vars.watchers["Mother Head"];
+		wMotherHeadHP.Update(game);
+		return (
 			   wMotherHeadHP.Old != 0 
 			&& wMotherHeadHP.Current == 0
 		);
+	};
 
+	Func<bool> isMotherPhaseChange = () => {
 		return (
-			   settings["Mother Boss Phase 1"] && isFirstPhaseChange
-			|| settings["Mother Boss Phase 2"] && isSecondPhaseChange
-			|| settings["Mother Boss Phase 3"] && isThirdPhaseChange
+			   settings["Mother Boss Phase 1"] && isMotherFirstPhaseChange()
+			|| settings["Mother Boss Phase 2"] && isMotherSecondPhaseChange()
+			|| settings["Mother Boss Phase 3"] && isMotherThirdPhaseChange()
 		);		
 	};
-	vars.isMotherPhaseChange = isMotherPhaseChange;
 
 	Func<bool> isPrimagenPhaseChange = () => {
 		var wPrimagenHP = vars.watchers["Primagen HP"];
@@ -674,19 +684,32 @@ init
 			)
 		);
 	};
-	vars.isPrimagenPhaseChange = isPrimagenPhaseChange;
 
-	Func<string, bool> isPhaseChangeOf = (s) => {
-		switch(s)
+	Func<string, bool> isPhaseChangeOf = (bossName) => {
+		switch(bossName)
 		{
-			case "The Blind One Boss":	return vars.isBlindPhaseChange();
-			case "Mantid Queen Boss":	return vars.isQueenPhaseChange();
-			case "Mother Boss":			return vars.isMotherPhaseChange();
-			case "Primagen Endboss":	return vars.isPrimagenPhaseChange();
+			case "The Blind One Boss":	return isBlindPhaseChange();
+			case "Mantid Queen Boss":	return isQueenPhaseChange();
+			case "Mother Boss":			return isMotherPhaseChange();
+			case "Primagen Endboss":	return isPrimagenPhaseChange();
 			default:					return false;
 		}
 	};
 	vars.isPhaseChangeOf = isPhaseChangeOf;
+
+	Func<string, bool> gotItem = (name) => {
+		var cwItem = vars.watchers[name];
+		cwItem.Update(game);
+		return cwItem.Old < cwItem.Current; 
+	};
+	vars.gotItem = gotItem;
+	
+	Func<string, bool> handedInItem = (name) => {
+		var cwItem = vars.watchers[name];
+		cwItem.Update(game);
+		return cwItem.Old > cwItem.Current; 
+	};
+	vars.handedInItem = handedInItem;
 
 	//=============================================================================
 	// Memory Watchers
@@ -750,14 +773,6 @@ exit
 
 update
 {
-	//TODO REFACTORING OF QUICK & DIRTY PARTS (Check Only Relevant Things & return)
-	//TODO CHECK WHATS CHECKED & CHECK AFTER LOCATION
-	//TODO WEAPONS IN BOSSFIGHTS IGNORED (BLIND) 
-	//TODO MAYBE RETURN DIRECTLY AFTER FINDING SPLIT
-
-	//TODO NEXT: DEFINE UTILITY FUNC FOR EVERY ENTITY 
-	//(REDUCE UPDATE RATE BY PUTTING SETTINGS CHECK BEFORE UPDATE)
-
 	//=============================================================================
 	// Global Watcher Updates
 	//=============================================================================
@@ -771,11 +786,11 @@ update
 	wInMenu.Update(game);
 
 	//=============================================================================
-	// Splitting
+	// Splits
 	//=============================================================================
 
 	vars.isSplit = false;
-	var hubID = vars.levelIDs["Hub"];
+	var hubID = vars.levelData["Hub"];
 	
 	if(settings["Warps"])
 		vars.isSplit |= (
@@ -795,7 +810,7 @@ update
 				var cBossName = vars.bossData[j].Item1;
 				vars.isSplit |= (
 					   settings[cBossName]
-					&& wLevelID.Current == vars.levelIDs[cBossName] 
+					&& wLevelID.Current == vars.levelData[cBossName] 
 					&& vars.isPhaseChangeOf(cBossName)
 				);
 			}
@@ -806,54 +821,19 @@ update
 			{
 				var cTuple = entryValue[j];
 				var cDataTupleList = cTuple.Item1;
-				var cType = cTuple.Item4;
 				for(int k = 0; k < cDataTupleList.Count; ++k)
 				{
 					var cDataTuple = cDataTupleList[k];
 					var cName = cDataTuple.Item1;
 					var cLevelIndex = cDataTuple.Item2;
-					var cMin = cDataTuple.Item3;
-					var cMax = cDataTuple.Item4;
 
 					if(cLevelIndex > -1)
 					{					
 						var cLevelName = vars.mainLevelNames[cLevelIndex];
-						if(settings[cLevelName])
-						{
-							switch((string)entryKey)
-							{
-								case "Weapons":
-									var cwWeapon = vars.watchers[cName];
-									cwWeapon.Update(game);
-									vars.isSplit |= (
-										   settings[cLevelName + " " + cName]
-										&& !cwWeapon.Old && cwWeapon.Current
-									);
-									break;
-								case "Level Keys":
-									var cwLevelKey = vars.watchers[cName];
-									cwLevelKey.Update(game);
-									var cSubEntryKey = cLevelName + " " + cName;
-									cSubEntryKey = cSubEntryKey.Remove(cSubEntryKey.Length - 1);
-									for(int l = cMin; l < cMax; ++l)								
-										vars.isSplit |= (
-											   settings[cSubEntryKey + " " + (l + 1).ToString()]
-											&& cwLevelKey.Old < cwLevelKey.Current
-										); 
-									break;
-								case "Primagen Keys":
-								case "Eagle Feathers": 
-								case "Talismans": 
-								case "Nuke Parts":
-									var cwEntity = vars.watchers[cName];
-									cwEntity.Update(game);
-									vars.isSplit |= (
-										   settings[cLevelName + " " + cName]
-										&& cwEntity.Old < cwEntity.Current
-									);
-									break;	
-							}
-						}
+						vars.isSplit |= (
+								settings[cLevelName + " " + cName]
+							&& vars.gotItem(cName)
+						);
 					}
 				}
 			}
@@ -867,8 +847,8 @@ start
 	var wIsLoading = vars.watchers["Is Loading"];
 	var wInMenu = vars.watchers["In Menu"];
 
-	var isNewGame = wLevelID.Old == vars.levelIDs["Main Menu"] &&
-		wLevelID.Current == vars.levelIDs["Intro 1"];
+	var isNewGame = wLevelID.Old == vars.levelData["Main Menu"] &&
+		wLevelID.Current == vars.levelData["Intro 1"];
 
 	var isLoadingSave = !wInMenu.Current && 
 		wIsLoading.Old && !wIsLoading.Current;
@@ -885,7 +865,7 @@ split
 reset
 {
 	var wLevelID = vars.watchers["Level ID"];
-	var mainMenuID = vars.levelIDs["Main Menu"];
+	var mainMenuID = vars.levelData["Main Menu"];
 
 	var isTransitionToMainMenu =  wLevelID.Old != mainMenuID &&
 		wLevelID.Current == mainMenuID;
